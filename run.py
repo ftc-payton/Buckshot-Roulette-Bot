@@ -397,8 +397,12 @@ class UIApp(tk.Tk):
                 elif possibility_tree[i][0][-1] == "full_end_no_win":
                     none_prob += (possibility_tree[i][1] * (1 / full_prob))
 
+            global result
+            result = ''
             action_window = ActionWindow(self, actual_action, you_prob, dealer_prob, none_prob)
             self.wait_window(action_window.win)
+            if not result:
+                return
             print(result)
 
             if result == "Live":
