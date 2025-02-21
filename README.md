@@ -9,4 +9,4 @@
 A bot that tells you the probability of winning a Buckshot Roulette round and the best actions to take.
 
 ### Running
-Download the latest standalone executable from [Releases](https://github.com/ftc-payton/Buckshot-Roulette-Bot/releases) or download and run the `run.py` script. (requires [Python 3.x](https://www.python.org/downloads/), untested on <3.12)
+Download the latest standalone executable from [Releases](https://github.com/ftc-payton/Buckshot-Roulette-Bot/releases) or download and run the `run.py` script. (requires [Python 3.x](https://www.python.org/downloads/), untested on 3.11 and lower)
