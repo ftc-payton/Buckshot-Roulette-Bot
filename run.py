@@ -469,7 +469,11 @@ class UIApp(tk.Tk):
         elif possibility_tree[0][0][-1] == "full_end_dealer_win":
             action_window = ActionWindow(self, possibility_tree[0][0][-1], 0.0, 1.0, 0.0)
             self.wait_window(action_window.win)
-        elif possibility_tree[0][0][-1] == "full_end_none_win":
+        elif possibility_tree[0][0][-1] == "full_end_no_win":
+            for i in range(len(possibility_tree[0][0]) - turn_index - 1):
+                action_window = ActionWindow(self, possibility_tree[0][0][turn_index], 0.0, 0.0, 1.0)
+                self.wait_window(action_window.win)
+                turn_index += 1
             action_window = ActionWindow(self, possibility_tree[0][0][-1], 0.0, 0.0, 1.0)
             self.wait_window(action_window.win)
 
