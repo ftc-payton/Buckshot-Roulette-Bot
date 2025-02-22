@@ -16,17 +16,18 @@ class ActionWindow:
         self.none_prob = none_prob
 
         self.action_text_map = {
-            "SR_you_shoot_self": "More likely for a blank. Shoot yourself. Click which shell occurred.",
-            "SR_you_shoot_op": "More or equally likely for a live round. Shoot the dealer. Click which shell occurred.",
+            "SR_you_shoot_self": "There is a higher chance that the shell is blank. Shoot yourself. Click which shell occurred.",
+            "SR_you_shoot_op": "There is a higher or equal chance that the shell is live. Shoot the dealer. Click which shell occurred.",
             "SR_dealer_shoot_op": "Which shell did the dealer shoot at you?",
             "SR_dealer_shoot_self": "Which shell did the dealer shoot at itself?",
             "CR_dealer_shoot": "Who did the dealer shoot?",
             "full_end_player_win": "You win!",
-            "full_end_dealer_win": "You lose...",
-            "full_end_no_win": "Shotgun will be loaded again. You must set the board again, then press go.",
-            "you_shoot_op_live": "Shell is guaranteed live. Shoot the dealer.",
-            "you_shoot_self_blank": "Shell is guaranteed blank. Shoot yourself.",
-            "dealer_shoot_op_live": "Dealer will shoot you with a live round."
+            "full_end_dealer_win": "You are guaranteed to lose.",
+            "full_end_no_win": "The shotgun will be loaded again. You must set the board again, then press go.",
+            "you_shoot_op_live": "The shell is guaranteed to be live. Shoot the dealer.",
+            "you_shoot_self_blank": "The shell is guaranteed to be blank. Shoot yourself.",
+            "dealer_shoot_op_live": "The Dealer will shoot you with a guaranteed live round.",
+            "dealer_shoot_self_blank": "The Dealer will shoot itself with a guaranteed blank round."
         }
 
         self.win = tk.Toplevel(master)
@@ -461,8 +462,11 @@ class UIApp(tk.Tk):
         print(possibility_tree[0][0][-1])
         if possibility_tree[0][0][-1] == "full_end_player_win":
             for i in range(len(possibility_tree[0][0]) - turn_index - 1):
+                result = ''
                 action_window = ActionWindow(self, possibility_tree[0][0][turn_index], 1.0, 0.0, 0.0)
                 self.wait_window(action_window.win)
+                if not result:
+                    return
                 turn_index += 1
             action_window = ActionWindow(self, possibility_tree[0][0][-1], 1.0, 0.0, 0.0)
             self.wait_window(action_window.win)
@@ -471,8 +475,11 @@ class UIApp(tk.Tk):
             self.wait_window(action_window.win)
         elif possibility_tree[0][0][-1] == "full_end_no_win":
             for i in range(len(possibility_tree[0][0]) - turn_index - 1):
+                result = ''
                 action_window = ActionWindow(self, possibility_tree[0][0][turn_index], 0.0, 0.0, 1.0)
                 self.wait_window(action_window.win)
+                if not result:
+                    return
                 turn_index += 1
             action_window = ActionWindow(self, possibility_tree[0][0][-1], 0.0, 0.0, 1.0)
             self.wait_window(action_window.win)

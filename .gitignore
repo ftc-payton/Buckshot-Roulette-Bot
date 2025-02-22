@@ -1,5 +1,11 @@
+# ide files
 .idea/
+
+# build files
 build/
 dist/
+run.spec
+
+# py2app files
 setup.py
 App.entitlements
