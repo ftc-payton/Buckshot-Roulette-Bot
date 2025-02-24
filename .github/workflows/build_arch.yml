@@ -9,6 +9,8 @@ on:
   push:
     branches:
       - main
+    paths:
+      - run.py
   workflow_dispatch:
 
 jobs:
