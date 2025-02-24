@@ -38,4 +38,4 @@ jobs:
           tag: ${{ github.sha }}-debian
           name: "Debian Release - ${{ github.sha }}"
           draft: true
-          files: dist/run
+          artifact: dist/run

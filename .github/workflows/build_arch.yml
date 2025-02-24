@@ -30,4 +30,4 @@ jobs:
           tag: ${{ github.sha }}-arch
           name: "Arch Release - ${{ github.sha }}"
           draft: true
-          files: dist/run
+          artifact: dist/run

@@ -38,4 +38,4 @@ jobs:
           tag: ${{ github.sha }}-win
           name: "Windows Release - ${{ github.sha }}"
           draft: true
-          files: dist/run.exe
+          artifact: dist/run.exe
