@@ -27,7 +27,10 @@ class ActionWindow:
             "you_shoot_op_live": "The shell is guaranteed to be live. Shoot the dealer.",
             "you_shoot_self_blank": "The shell is guaranteed to be blank. Shoot yourself.",
             "dealer_shoot_op_live": "The Dealer will shoot you with a guaranteed live round.",
-            "dealer_shoot_self_blank": "The Dealer will shoot itself with a guaranteed blank round."
+            "dealer_shoot_self_blank": "The Dealer will shoot itself with a guaranteed blank round.",
+            "you_saw": "There is a higher or equal chance that the shell is live. Use the hand saw.",
+            "HR_dealer_saw": "Did the dealer use the hand saw?",
+            "dealer_saw": "The dealer will use the hand saw."
         }
 
         self.win = tk.Toplevel(master)
@@ -97,6 +100,15 @@ class ActionWindow:
             tk.Button(
                 self.button_frame, text="You",
                 command=lambda: self.set_result("You")
+            ).pack(side="left", padx=10)
+        elif self.actual_action.startswith("HR_"):
+            tk.Button(
+                self.button_frame, text="Yes",
+                command=lambda: self.set_result("Yes")
+            ).pack(side="left", padx=10)
+            tk.Button(
+                self.button_frame, text="No",
+                command=lambda: self.set_result("No")
             ).pack(side="left", padx=10)
         else:
             tk.Button(
@@ -346,8 +358,17 @@ class UIApp(tk.Tk):
         global possibility_tree
         possibility_tree = []
 
-        # items will not be passed to go until full functionality is implemented
-        evaluated = self.go([], [], live_rounds, blanks, dealer_hp, player_hp)
+        limited_player_items = []
+        limited_dealer_items = []
+        for i in range(len(player_items)):
+            if "Hand Saw" in player_items[i]:
+                limited_player_items.append("Hand Saw")
+        for i in range(len(dealer_items)):
+            if "Hand Saw" in dealer_items[i]:
+                limited_dealer_items.append("Hand Saw")
+
+
+        evaluated = self.go(limited_player_items, limited_dealer_items, live_rounds, blanks, dealer_hp, player_hp)
         if not evaluated:
             return
 
@@ -367,6 +388,7 @@ class UIApp(tk.Tk):
             action_common_dealer_shoot = all("dealer_shoot_" in item for item in actions) if actions else False
             action_common_dealer_shoot_op = all("dealer_shoot_op_" in item for item in actions) if actions else False
             action_common_dealer_shoot_self = all("dealer_shoot_self_" in item for item in actions) if actions else False
+            dealer_potential_saw = any("dealer_saw" in item for item in actions) if actions else False
             action_same = all(x == actions[0] for x in actions) if actions else False
             if not action_same:
                 if action_common_you_shoot_op:
@@ -380,6 +402,8 @@ class UIApp(tk.Tk):
                         actual_action = "SR_dealer_shoot_self"
                     else:
                         actual_action = "CR_dealer_shoot"
+                elif dealer_potential_saw:
+                    actual_action = "HR_dealer_saw"
             else:
                 actual_action = actions[0]
 
@@ -454,8 +478,33 @@ class UIApp(tk.Tk):
                                 deleted = False
                         except IndexError:
                             deleted = False
+            elif result == "Yes":
+                for i in range(len(possibility_tree)):
+                    deleted = True
+                    while deleted:
+                        try:
+                            if not "dealer_saw" in possibility_tree[i][0][turn_index]:
+                                possibility_tree.pop(i)
+                                deleted = True
+                            else:
+                                deleted = False
+                        except IndexError:
+                            deleted = False
+            elif result == "No":
+                for i in range(len(possibility_tree)):
+                    deleted = True
+                    while deleted:
+                        try:
+                            if "dealer_saw" in possibility_tree[i][0][turn_index]:
+                                possibility_tree.pop(i)
+                                deleted = True
+                            else:
+                                deleted = False
+                        except IndexError:
+                            deleted = False
+
             print(possibility_tree)
-            if not 'CR' in actual_action:
+            if not 'CR' in actual_action and not (dealer_potential_saw and result == "No"):
                 turn_index += 1
             game_not_resolved = not len(possibility_tree) == 1
 
@@ -562,83 +611,97 @@ def eval(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomne
             result = eval(you_items, dealer_items, live - 1, blank, dealer_hp - potential_damage, you_hp, path, randomness, None, 'dealer')
             return result
 
-    if not you_items and not dealer_items:
-        if is_blank_guaranteed:
-            path.append("you_shoot_self_blank")
-            result = eval(you_items, dealer_items, live, blank - 1, dealer_hp, you_hp, path, randomness, None, 'you')
-            return result
+    if "Hand Saw" in you_items and live_chance >= blank_chance:
+        potential_damage = 2
+        you_items.remove("Hand Saw")
+        path.append("you_saw")
+    else:
+        potential_damage = 1
 
-        if live_chance >= blank_chance:
-            result = split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, 'opponent', 'you', live_chance)
-            return result
-        else:
-            result = split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, 'self', 'you', live_chance)
-            return result
+    if is_blank_guaranteed:
+        path.append("you_shoot_self_blank")
+        result = eval(you_items, dealer_items, live, blank - 1, dealer_hp, you_hp, path, randomness, None, 'you')
+        return result
 
-    if is_blank_guaranteed and "Inverter" in you_items:
-        you_items.remove("Inverter")
-        path.append("you_invert")
-        result = eval(you_items,dealer_items,live + 1,blank - 1,dealer_hp,you_hp,path,randomness, 'live', 'you')
+    if live_chance >= blank_chance:
+        result = split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, 'opponent', 'you', live_chance, potential_damage)
+        return result
+    else:
+        result = split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, 'self', 'you', live_chance)
         return result
 
 
 
-    # test if live
-    live_randomness = randomness * live_chance
-    blank_randomness = randomness * blank_chance
-
-def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, action, turn, live_odds):
+def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, action, turn, live_odds, potential_damage = 1):
     live_randomness = randomness * live_odds
     blank_randomness = randomness * (1 - live_odds)
     if action == 'dealer_shoot_choice':
         stored_path = path.copy()
-        op_eval = sim_dealer_action(you_items, dealer_items, live, blank, dealer_hp, you_hp, stored_path.copy(), randomness * 0.5,'opponent')
-        self_eval = sim_dealer_action(you_items, dealer_items, live, blank, dealer_hp, you_hp, stored_path.copy(), randomness * 0.5, 'self')
+        stored_you_items = you_items.copy()
+        stored_dealer_items = dealer_items.copy()
+        op_eval = sim_dealer_action(stored_you_items.copy(), stored_dealer_items.copy(), live, blank, dealer_hp, you_hp, stored_path.copy(), randomness * 0.5,'opponent')
+        self_eval = sim_dealer_action(stored_you_items.copy(), stored_dealer_items.copy(), live, blank, dealer_hp, you_hp, stored_path.copy(), randomness * 0.5, 'self')
         return [self_eval, op_eval]
-    if action == 'beer':
-        stored_path = path.copy()
-        you_items.remove("Beer")
-        live_path = stored_path.copy()
-        live_path.append("you_beer_live")
-        live_eval = eval(you_items, dealer_items, live - 1, blank, dealer_hp, you_hp, live_path.copy(), live_randomness, None)
-        blank_path = stored_path.copy()
-        blank_path.append("you_beer_blank")
-        blank_eval = eval(you_items, dealer_items, live, blank - 1, dealer_hp, you_hp, blank_path.copy(), blank_randomness, None)
-        return [live_eval, blank_eval]
+
+    # incomplete beer splitting
+    #
+    # if action == 'beer':
+    #    stored_path = path.copy()
+    #    you_items.remove("Beer")
+    #    live_path = stored_path.copy()
+    #    live_path.append("you_beer_live")
+    #    live_eval = eval(you_items, dealer_items, live - 1, blank, dealer_hp, you_hp, live_path.copy(), live_randomness, None)
+    #    blank_path = stored_path.copy()
+    #    blank_path.append("you_beer_blank")
+    #    blank_eval = eval(you_items, dealer_items, live, blank - 1, dealer_hp, you_hp, blank_path.copy(), blank_randomness, None)
+    #    return [live_eval, blank_eval]
+
     if action == 'self':
         if turn == 'dealer':
             stored_path = path.copy()
+            stored_you_items = you_items.copy()
+            stored_dealer_items = dealer_items.copy()
             live_path = stored_path.copy()
             live_path.append("dealer_shoot_self_live")
-            live_eval = eval(you_items, dealer_items, live - 1, blank, dealer_hp - 1, you_hp, live_path.copy(), live_randomness, None, 'you')
+            live_eval = eval(stored_you_items.copy(), stored_dealer_items.copy(), live - 1, blank, dealer_hp - 1, you_hp, live_path.copy(), live_randomness, None, 'you')
             blank_path = stored_path.copy()
             blank_path.append("dealer_shoot_self_blank")
-            blank_eval = eval(you_items, dealer_items, live, blank - 1, dealer_hp, you_hp, blank_path.copy(), blank_randomness, None,'dealer')
+            blank_eval = eval(stored_you_items.copy(), stored_dealer_items.copy(), live, blank - 1, dealer_hp, you_hp, blank_path.copy(), blank_randomness, None,'dealer')
             return [live_eval, blank_eval]
         elif turn == 'you':
             stored_path = path.copy()
+            stored_you_items = you_items.copy()
+            stored_dealer_items = dealer_items.copy()
             live_path = stored_path.copy()
             live_path.append("you_shoot_self_live")
-            live_eval = eval(you_items, dealer_items, live - 1, blank, dealer_hp, you_hp - 1, live_path.copy(), live_randomness, None, 'dealer')
+            live_eval = eval(stored_you_items.copy(), stored_dealer_items.copy(), live - 1, blank, dealer_hp, you_hp - 1, live_path.copy(), live_randomness, None, 'dealer')
             blank_path = stored_path.copy()
             blank_path.append("you_shoot_self_blank")
-            blank_eval = eval(you_items, dealer_items, live, blank - 1, dealer_hp, you_hp, blank_path.copy(), blank_randomness, None,'you')
+            blank_eval = eval(stored_you_items.copy(), stored_dealer_items.copy(), live, blank - 1, dealer_hp, you_hp, blank_path.copy(), blank_randomness, None,'you')
             return [live_eval, blank_eval]
     elif action == 'opponent':
         if turn == 'dealer':
             stored_path = path.copy()
+            stored_you_items = you_items.copy()
+            stored_dealer_items = dealer_items.copy()
+            if "Hand Saw" in stored_dealer_items:
+                stored_path.append("dealer_saw")
+                stored_dealer_items.remove("Hand Saw")
+                potential_damage = 2
             live_path = stored_path.copy()
             live_path.append("dealer_shoot_op_live")
-            live_eval = eval(you_items, dealer_items, live - 1, blank, dealer_hp, you_hp - 1, live_path.copy(), live_randomness, None,'you')
+            live_eval = eval(stored_you_items.copy(), stored_dealer_items.copy(), live - 1, blank, dealer_hp, you_hp - potential_damage, live_path.copy(), live_randomness, None,'you')
             blank_path = stored_path.copy()
             blank_path.append("dealer_shoot_op_blank")
-            blank_eval = eval(you_items, dealer_items, live, blank - 1, dealer_hp, you_hp, blank_path.copy(), blank_randomness, None,'you')
+            blank_eval = eval(stored_you_items.copy(), stored_dealer_items.copy(), live, blank - 1, dealer_hp, you_hp, blank_path.copy(), blank_randomness, None,'you')
             return [live_eval, blank_eval]
         elif turn == 'you':
             stored_path = path.copy()
+            stored_you_items = you_items.copy()
+            stored_dealer_items = dealer_items.copy()
             live_path = stored_path.copy()
             live_path.append("you_shoot_op_live")
-            live_eval = eval(you_items, dealer_items, live - 1, blank, dealer_hp - 1, you_hp, live_path.copy(), live_randomness, None,'dealer')
+            live_eval = eval(you_items, dealer_items, live - 1, blank, dealer_hp - potential_damage, you_hp, live_path.copy(), live_randomness, None,'dealer')
             blank_path = stored_path.copy()
             blank_path.append("you_shoot_op_blank")
             blank_eval = eval(you_items, dealer_items, live, blank - 1, dealer_hp, you_hp, blank_path.copy(), blank_randomness, None,'dealer')
@@ -673,21 +736,26 @@ def sim_dealer_action(you_items, dealer_items, live, blank, dealer_hp, you_hp, p
     is_live_guaranteed = live_chance == 1.0
     is_blank_guaranteed = blank_chance == 1.0
 
-    if not dealer_items:
-        if is_live_guaranteed:
-            path.append("dealer_shoot_op_live")
-            result = eval(you_items, dealer_items, live - 1, blank, dealer_hp, you_hp - 1, path, randomness, None, 'you')
-            return result
-        elif not is_blank_guaranteed and not choice:
-            result = split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, 'dealer_shoot_choice', 'dealer', live_chance)
-            return result
-        elif not is_blank_guaranteed:
-            result = split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, choice, 'dealer', live_chance)
-            return result
-        elif is_blank_guaranteed:
-            path.append("dealer_shoot_self_blank")
-            result = eval(you_items, dealer_items, live, blank - 1, dealer_hp, you_hp, path, randomness, None, 'dealer')
-            return result
+    if is_live_guaranteed:
+        if "Hand Saw" in dealer_items:
+            potential_damage = 2
+            dealer_items.remove("Hand Saw")
+            path.append("dealer_saw")
+        else:
+            potential_damage = 1
+        path.append("dealer_shoot_op_live")
+        result = eval(you_items, dealer_items, live - 1, blank, dealer_hp, you_hp - potential_damage, path, randomness, None, 'you')
+        return result
+    elif not is_blank_guaranteed and not choice:
+        result = split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, 'dealer_shoot_choice', 'dealer', live_chance)
+        return result
+    elif not is_blank_guaranteed:
+        result = split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, choice, 'dealer', live_chance)
+        return result
+    elif is_blank_guaranteed:
+        path.append("dealer_shoot_self_blank")
+        result = eval(you_items, dealer_items, live, blank - 1, dealer_hp, you_hp, path, randomness, None, 'dealer')
+        return result
 
     path.append("dealer_sim_here")
     return [path, randomness, you_hp, dealer_hp]
