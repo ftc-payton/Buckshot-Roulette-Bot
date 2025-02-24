@@ -1,6 +1,5 @@
 permissions:
   contents: write
-  releases: write
 
 
 name: Build Arch Binary
