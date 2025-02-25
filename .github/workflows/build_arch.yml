@@ -22,7 +22,7 @@ jobs:
 
       - name: Build in Arch Linux Docker container
         run: |
-          docker run --rm -v "${{ github.workspace }}":/workspace -w /workspace archlinux/base:latest /bin/bash -c "pacman -Syu --noconfirm && pacman -S --noconfirm python python-pip gcc && pip install --upgrade pip && pip install pyinstaller && pyinstaller --onefile --noconsole run.py"
+          docker run --rm -v "${{ github.workspace }}":/workspace -w /workspace archlinux:latest /bin/bash -c "pacman -Syu --noconfirm && pacman -S --noconfirm python python-pip gcc && pip install --upgrade pip && pip install pyinstaller && pyinstaller --onefile --noconsole run.py"
 
       - name: Create Draft Release
         uses: ncipollo/release-action@v1
