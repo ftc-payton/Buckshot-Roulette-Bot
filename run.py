@@ -389,6 +389,7 @@ class UIApp(tk.Tk):
             action_common_dealer_shoot_op = all("dealer_shoot_op_" in item for item in actions) if actions else False
             action_common_dealer_shoot_self = all("dealer_shoot_self_" in item for item in actions) if actions else False
             dealer_potential_saw = any("dealer_saw" in item for item in actions) if actions else False
+            action_common_dealer_saw = all("dealer_saw" in item for item in actions) if actions else False
             action_same = all(x == actions[0] for x in actions) if actions else False
             if not action_same:
                 if action_common_you_shoot_op:
@@ -402,6 +403,8 @@ class UIApp(tk.Tk):
                         actual_action = "SR_dealer_shoot_self"
                     else:
                         actual_action = "CR_dealer_shoot"
+                elif action_common_dealer_saw:
+                    actual_action = "dealer_saw"
                 elif dealer_potential_saw:
                     actual_action = "HR_dealer_saw"
             else:
@@ -504,7 +507,7 @@ class UIApp(tk.Tk):
                             deleted = False
 
             print(possibility_tree)
-            if not 'CR' in actual_action and not (dealer_potential_saw and result == "No"):
+            if not 'CR' in actual_action and not (dealer_potential_saw and result == "No" and not action_common_dealer_saw):
                 turn_index += 1
             game_not_resolved = not len(possibility_tree) == 1
 
