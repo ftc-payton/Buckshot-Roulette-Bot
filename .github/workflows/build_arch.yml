@@ -1,0 +1,27 @@
+name: Build Arch Binary
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Build in Arch Linux Docker container
+        run: |
+          docker run --rm -v "${{ github.workspace }}":/workspace -w /workspace archlinux/base:latest /bin/bash -c "pacman -Syu --noconfirm && pacman -S --noconfirm python python-pip gcc && pip install --upgrade pip && pip install pyinstaller && pyinstaller --onefile --noconsole run.py"
+
+      - name: Create Draft Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ github.sha }}-arch
+          name: "Arch Release - ${{ github.sha }}"
+          draft: true
+          files: dist/run
