@@ -29,7 +29,7 @@ jobs:
 
       - name: Rename binary
         run: |
-          sudo mv dist/run dist/Buckshot_Roulette_Bot_${{ steps.vars.outputs.sha_short }}_arch_x64
+          sudo mv dist/run dist/Buckshot_Roulette_Bot_${{ steps.vars.outputs.sha_short }}_arch_arm64
 
       - name: Create/Upload Pre-release
         uses: ncipollo/release-action@v1
@@ -40,4 +40,4 @@ jobs:
           prerelease: true
           allowUpdates: true
           replacesArtifacts: false
-          artifacts: dist/Buckshot_Roulette_Bot_${{ steps.vars.outputs.sha_short }}_arch_x64
+          artifacts: dist/Buckshot_Roulette_Bot_${{ steps.vars.outputs.sha_short }}_arch_arm64

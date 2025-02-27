@@ -41,7 +41,7 @@ jobs:
 
       - name: Rename binary
         run: |
-          Rename-Item -Path "dist/run.exe" -NewName "Buckshot_Roulette_Bot_${{ steps.vars.outputs.sha_short }}_windows_x64.exe"
+          Rename-Item -Path "dist/run.exe" -NewName "Buckshot_Roulette_Bot_${{ steps.vars.outputs.sha_short }}_windows.exe"
 
       - name: Create/Upload Pre-release
         uses: ncipollo/release-action@v1
