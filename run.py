@@ -1,10 +1,13 @@
 import tkinter as tk
 from tkinter import Button, Frame, Canvas
+from copy import deepcopy
+from math import isclose
 
 # TODO: add item functionality
 
 possibility_tree = []
 result = ''
+maximum_hp = 0
 
 class ActionWindow:
     def __init__(self, master, initial_action, you_prob, dealer_prob, none_prob):
@@ -16,6 +19,7 @@ class ActionWindow:
         self.none_prob = none_prob
 
         self.action_text_map = {
+            "IC": "Invalid configuration!",
             "SR_you_shoot_self": "There is a higher chance that the shell is blank. Shoot yourself. Click which shell occurred.",
             "SR_you_shoot_op": "There is a higher or equal chance that the shell is live. Shoot the dealer. Click which shell occurred.",
             "SR_dealer_shoot_op": "Which shell did the dealer shoot at you?",
@@ -30,7 +34,11 @@ class ActionWindow:
             "dealer_shoot_self_blank": "The Dealer will shoot itself with a guaranteed blank round.",
             "you_saw": "There is a higher or equal chance that the shell is live. Use the hand saw.",
             "HR_dealer_saw": "Did the dealer use the hand saw?",
-            "dealer_saw": "The dealer will use the hand saw."
+            "dealer_saw": "The dealer will use the hand saw.",
+            "SR_you_glass": "Use the magnifying glass. Click which shell is in the chamber.",
+            "SR_you_beer": "Use the beer. Click which shell was ejected.",
+            "you_beer_live": "Use the beer. You are guaranteed to eject a live round.",
+            "you_beer_blank": "Use the beer. You are guaranteed to eject a blank round." # probably no scenario where this happens
         }
 
         self.win = tk.Toplevel(master)
@@ -329,13 +337,19 @@ class UIApp(tk.Tk):
 
         middle_frame = tk.Frame(right_inner, bg="lightgray")
         middle_frame.pack(pady=20)
-        tk.Label(middle_frame, text="Dealer HP:", bg="lightgray", fg="black").grid(row=0, column=0, padx=2)
-        self.dealer_hp_control = NumericControl(middle_frame, initial_value=0)
-        self.dealer_hp_control.grid(row=0, column=1, padx=2)
 
-        tk.Label(middle_frame, text="Your HP:", bg="lightgray", fg="black").grid(row=1, column=0, padx=2)
+        tk.Label(middle_frame, text="Max HP:", bg="lightgray", fg="black").grid(row=0, column=0, padx=2)
+        self.max_hp_control = NumericControl(middle_frame, initial_value=0)
+        self.max_hp_control.grid(row=0, column=1, padx=2)
+
+        tk.Label(middle_frame, text="Dealer HP:", bg="lightgray", fg="black").grid(row=1, column=0, padx=2)
+        self.dealer_hp_control = NumericControl(middle_frame, initial_value=0)
+        self.dealer_hp_control.grid(row=1, column=1, padx=2)
+
+        tk.Label(middle_frame, text="Your HP:", bg="lightgray", fg="black").grid(row=2, column=0, padx=2)
         self.you_hp_control = NumericControl(middle_frame, initial_value=0)
-        self.you_hp_control.grid(row=1, column=1, padx=2)
+        self.you_hp_control.grid(row=2, column=1, padx=2)
+
 
         go_btn = Button(right_inner, text="Go", command=self.run_go)
         go_btn.pack(pady=10)
@@ -353,22 +367,13 @@ class UIApp(tk.Tk):
         blanks = self.blank_count_control.value
         dealer_hp = self.dealer_hp_control.value
         player_hp = self.you_hp_control.value
+        max_hp = self.max_hp_control.value
 
 
         global possibility_tree
         possibility_tree = []
 
-        limited_player_items = []
-        limited_dealer_items = []
-        for i in range(len(player_items)):
-            if "Hand Saw" in player_items[i]:
-                limited_player_items.append("Hand Saw")
-        for i in range(len(dealer_items)):
-            if "Hand Saw" in dealer_items[i]:
-                limited_dealer_items.append("Hand Saw")
-
-
-        evaluated = self.go(limited_player_items, limited_dealer_items, live_rounds, blanks, dealer_hp, player_hp)
+        evaluated = self.go(player_items, dealer_items, live_rounds, blanks, dealer_hp, player_hp, max_hp)
         if not evaluated:
             return
 
@@ -390,6 +395,8 @@ class UIApp(tk.Tk):
             action_common_dealer_shoot_self = all("dealer_shoot_self_" in item for item in actions) if actions else False
             dealer_potential_saw = any("dealer_saw" in item for item in actions) if actions else False
             action_common_dealer_saw = all("dealer_saw" in item for item in actions) if actions else False
+            action_common_you_glass = all("you_glass" in item for item in actions) if actions else False
+            action_common_you_beer = all("you_beer" in item for item in actions) if actions else False
             action_same = all(x == actions[0] for x in actions) if actions else False
             if not action_same:
                 if action_common_you_shoot_op:
@@ -407,6 +414,10 @@ class UIApp(tk.Tk):
                     actual_action = "dealer_saw"
                 elif dealer_potential_saw:
                     actual_action = "HR_dealer_saw"
+                elif action_common_you_glass:
+                    actual_action = "SR_you_glass"
+                elif action_common_you_beer:
+                    actual_action = "SR_you_beer"
             else:
                 actual_action = actions[0]
 
@@ -540,9 +551,10 @@ class UIApp(tk.Tk):
 
 
 
-    def go(self, you_items, dealer_items, live, blank, dealer_hp, you_hp):
-        if ((live <= 0) and (blank <= 0)) or (dealer_hp <= 0) or (you_hp <= 0):
-            print("Invalid configuration!")
+    def go(self, you_items, dealer_items, live, blank, dealer_hp, you_hp, max_hp):
+        if ((live <= 0) and (blank <= 0)) or (dealer_hp <= 0) or (you_hp <= 0) or (max_hp < you_hp or max_hp < dealer_hp):
+            action_window = ActionWindow(self, "IC", 0.0, 0.0, 0.0)
+            self.wait_window(action_window.win)
             return None
 
         print("\r\n")
@@ -552,6 +564,9 @@ class UIApp(tk.Tk):
         print("Your Health:Dealer Health", f"{you_hp}:{dealer_hp}")
 
 
+        global maximum_hp
+        maximum_hp = max_hp
+
         result = eval(you_items,dealer_items,live,blank,dealer_hp,you_hp,["full_start"],1.0, None, 'you')
         return result
 
@@ -559,7 +574,7 @@ class UIApp(tk.Tk):
 
 
 
-def eval(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, turn):
+def eval(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, turn, force_dismiss_search = False):
     if any("full_end_dealer_win" in item for item in path) or any("full_end_player_win" in item for item in path):
         if dealer_hp == 0 or you_hp == 0:
             return [path, randomness, you_hp, dealer_hp]
@@ -596,6 +611,14 @@ def eval(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomne
     is_blank_likely = blank_chance < live_chance
     equally_likely = live_chance == blank_chance
 
+    if ("Magnifying Glass" in you_items or "Beer" in you_items) and not force_dismiss_search:
+        if is_live_guaranteed or is_blank_guaranteed:
+            passing = ["glass"]
+        else:
+            passing = []
+        search(you_items,dealer_items,live,blank,dealer_hp,you_hp,path,randomness,'live' if is_live_guaranteed else 'blank' if is_blank_guaranteed else None, passing)
+        return path
+
     # finalizers
     if is_live_guaranteed:
         if "Hand Saw" in you_items:
@@ -608,6 +631,7 @@ def eval(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomne
             path.append("you_shoot_op_live")
             path.append("full_end_player_win")
             possibility_tree.append([path, randomness, you_hp, dealer_hp - potential_damage])
+            print(possibility_tree)
             return [path, randomness, you_hp, dealer_hp - potential_damage]
         else:
             path.append("you_shoot_op_live")
@@ -646,18 +670,49 @@ def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomn
         self_eval = sim_dealer_action(stored_you_items.copy(), stored_dealer_items.copy(), live, blank, dealer_hp, you_hp, stored_path.copy(), randomness * 0.5, 'self')
         return [self_eval, op_eval]
 
-    # incomplete beer splitting
-    #
-    # if action == 'beer':
-    #    stored_path = path.copy()
-    #    you_items.remove("Beer")
-    #    live_path = stored_path.copy()
-    #    live_path.append("you_beer_live")
-    #    live_eval = eval(you_items, dealer_items, live - 1, blank, dealer_hp, you_hp, live_path.copy(), live_randomness, None)
-    #    blank_path = stored_path.copy()
-    #    blank_path.append("you_beer_blank")
-    #    blank_eval = eval(you_items, dealer_items, live, blank - 1, dealer_hp, you_hp, blank_path.copy(), blank_randomness, None)
-    #    return [live_eval, blank_eval]
+    if action == 'beer':
+        if turn == 'you':
+            stored_path = path.copy()
+            you_items.remove("Beer")
+            live_path = stored_path.copy()
+            live_path.append("you_beer_live")
+            live_eval = eval(you_items, dealer_items, live - 1, blank, dealer_hp, you_hp, live_path.copy(), live_randomness, None, turn)
+            blank_path = stored_path.copy()
+            blank_path.append("you_beer_blank")
+            blank_eval = eval(you_items, dealer_items, live, blank - 1, dealer_hp, you_hp, blank_path.copy(), blank_randomness, None, turn)
+            return [live_eval, blank_eval]
+        elif turn == 'dealer':
+            stored_path = path.copy()
+            dealer_items.remove("Beer")
+            live_path = stored_path.copy()
+            live_path.append("dealer_beer_live")
+            live_eval = eval(you_items, dealer_items, live - 1, blank, dealer_hp, you_hp, live_path.copy(), live_randomness, None, turn)
+            blank_path = stored_path.copy()
+            blank_path.append("dealer_beer_blank")
+            blank_eval = eval(you_items, dealer_items, live, blank - 1, dealer_hp, you_hp, blank_path.copy(), blank_randomness, None, turn)
+            return [live_eval, blank_eval]
+
+    if action == 'glass':
+        if turn == 'you':
+            stored_path = path.copy()
+            you_items.remove("Magnifying Glass")
+            live_path = stored_path.copy()
+            live_path.append("you_glass_live")
+            live_eval = eval(you_items, dealer_items, live, blank, dealer_hp, you_hp, live_path.copy(), live_randomness, "live", turn)
+            blank_path = stored_path.copy()
+            blank_path.append("you_glass_blank")
+            blank_eval = eval(you_items, dealer_items, live, blank, dealer_hp, you_hp, blank_path.copy(), blank_randomness, "blank", turn)
+            return [live_eval, blank_eval]
+        elif turn == 'dealer':
+            stored_path = path.copy()
+            dealer_items.remove("Magnifying Glass")
+            live_path = stored_path.copy()
+            live_path.append("dealer_glass_live")
+            live_eval = eval(you_items, dealer_items, live - 1, blank, dealer_hp, you_hp, live_path.copy(), live_randomness, "live", turn)
+            blank_path = stored_path.copy()
+            blank_path.append("dealer_glass_blank")
+            blank_eval = eval(you_items, dealer_items, live, blank - 1, dealer_hp, you_hp, blank_path.copy(), blank_randomness, "blank", turn)
+            return [live_eval, blank_eval]
 
     if action == 'self':
         if turn == 'dealer':
@@ -762,6 +817,85 @@ def sim_dealer_action(you_items, dealer_items, live, blank, dealer_hp, you_hp, p
 
     path.append("dealer_sim_here")
     return [path, randomness, you_hp, dealer_hp]
+
+def search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, passed):
+    global possibility_tree
+    starting_ptree = deepcopy(possibility_tree)
+    possibility_tree = []
+    alpha_ptree = []
+    beta_ptree = []
+
+    if "Magnifying Glass" in you_items and not "glass" in passed:
+        split(you_items,dealer_items,live,blank,dealer_hp,you_hp,path,randomness,"glass", "you", live / (live + blank))
+        alpha_ptree = deepcopy(possibility_tree)
+        possibility_tree = []
+        new_passed = passed.copy()
+        new_passed.append("glass")
+        search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, new_passed)
+        beta_ptree = deepcopy(possibility_tree)
+        action_done = True
+    elif "Beer" in you_items and not "beer" in passed:
+        if guarantee:
+            newpath = path.copy()
+            newpath.append(f"you_beer_{guarantee}")
+            new_you_items = you_items.copy()
+            new_you_items.remove("Beer")
+            if guarantee == 'live':
+                eval(new_you_items,dealer_items,live - 1,blank,dealer_hp,you_hp,newpath,randomness,None,'you')
+            elif guarantee == 'blank':
+                eval(new_you_items,dealer_items,live,blank - 1,dealer_hp,you_hp,newpath,randomness,None,'you')
+        else:
+            split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, "beer", "you", live / (live + blank))
+        alpha_ptree = deepcopy(possibility_tree)
+        possibility_tree = []
+        new_passed = passed.copy()
+        new_passed.append("beer")
+        search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, new_passed)
+        beta_ptree = deepcopy(possibility_tree)
+        action_done = True
+    # incomplete adrenaline code
+    #elif "Adrenaline" in you_items and not "adrenaline" in passed:
+    #    split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, "adrenaline", "you", live / (live + blank))
+    #    alpha_ptree = deepcopy(possibility_tree)
+    #    possibility_tree = []
+    #    new_passed = passed.copy()
+    #    new_passed.append("adrenaline")
+    #    search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, new_passed)
+    #    beta_ptree = deepcopy(possibility_tree)
+    #    action_done = True
+    else:
+        eval(you_items,dealer_items,live,blank,dealer_hp,you_hp,path,randomness,guarantee,'you', True)
+        return
+
+
+    a_d_prob = 0.0
+    a_y_prob = 0.0
+    a_n_prob = 0.0
+    for i in range(len(alpha_ptree)):
+        if alpha_ptree[i][0][-1] == "full_end_dealer_win":
+            a_d_prob += (alpha_ptree[i][1])
+        elif alpha_ptree[i][0][-1] == "full_end_player_win":
+            a_y_prob += (alpha_ptree[i][1])
+        elif alpha_ptree[i][0][-1] == "full_end_no_win":
+            a_n_prob += (alpha_ptree[i][1])
+
+    b_d_prob = 0.0
+    b_y_prob = 0.0
+    b_n_prob = 0.0
+    for i in range(len(beta_ptree)):
+        if beta_ptree[i][0][-1] == "full_end_dealer_win":
+            b_d_prob += (beta_ptree[i][1])
+        elif beta_ptree[i][0][-1] == "full_end_player_win":
+            b_y_prob += (beta_ptree[i][1])
+        elif beta_ptree[i][0][-1] == "full_end_no_win":
+            b_n_prob += (beta_ptree[i][1])
+
+    if a_y_prob + a_n_prob > b_y_prob and not isclose(a_y_prob + a_n_prob, b_y_prob, rel_tol=1e-9, abs_tol=0.0):
+        possibility_tree = starting_ptree + alpha_ptree
+    elif b_y_prob + b_n_prob > a_y_prob and not isclose(a_y_prob, b_y_prob + b_n_prob, rel_tol=1e-9, abs_tol=0.0):
+        possibility_tree = starting_ptree + beta_ptree
+    else:
+        possibility_tree = starting_ptree + beta_ptree
 
 if __name__ == "__main__":
     app = UIApp()
