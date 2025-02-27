@@ -1,7 +1,7 @@
 permissions:
   contents: write
 
-name: Build Windows Binary
+name: Build Debian (arm64) Binary
 
 on:
   push:
@@ -13,7 +13,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-24.04-arm
 
     steps:
       - name: Checkout repository
@@ -34,14 +34,11 @@ jobs:
 
       - name: Truncate commit hash
         id: vars
-        shell: pwsh
-        run: |
-          $sha_short = git rev-parse --short HEAD
-          echo "sha_short=$sha_short" >> $env:GITHUB_OUTPUT
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - name: Rename binary
         run: |
-          Rename-Item -Path "dist/run.exe" -NewName "Buckshot_Roulette_Bot_${{ steps.vars.outputs.sha_short }}_windows_x64.exe"
+          mv dist/run dist/Buckshot_Roulette_Bot_${{ steps.vars.outputs.sha_short }}_debian_arm64
 
       - name: Create/Upload Pre-release
         uses: ncipollo/release-action@v1
@@ -52,4 +49,4 @@ jobs:
           prerelease: true
           allowUpdates: true
           replacesArtifacts: false
-          artifacts: dist/Buckshot_Roulette_Bot_${{ steps.vars.outputs.sha_short }}_windows.exe
+          artifacts: dist/Buckshot_Roulette_Bot_${{ steps.vars.outputs.sha_short }}_debian_arm64
