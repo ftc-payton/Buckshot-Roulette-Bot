@@ -3,8 +3,6 @@ from tkinter import Button, Frame, Canvas
 from copy import deepcopy
 from math import isclose
 
-# TODO: add item functionality
-
 possibility_tree = []
 result = ''
 maximum_hp = 0
@@ -401,6 +399,7 @@ class UIApp(tk.Tk):
             action_common_dealer_saw = all("dealer_saw" in item for item in actions) if actions else False
             action_common_you_glass = all("you_glass" in item for item in actions) if actions else False
             action_common_you_beer = all("you_beer" in item for item in actions) if actions else False
+            action_common_you_adrenaline_beer = all("you_adrenaline_beer" in item for item in actions) if actions else False
             action_common_you_adrenaline_glass = all("you_adrenaline_glass" in item for item in actions) if actions else False
             action_same = all(x == actions[0] for x in actions) if actions else False
             if not action_same:
@@ -425,6 +424,8 @@ class UIApp(tk.Tk):
                     actual_action = "SR_you_beer"
                 elif action_common_you_adrenaline_glass:
                     actual_action = "SR_you_adrenaline_glass"
+                elif action_common_you_adrenaline_beer:
+                    actual_action = "SR_you_adrenaline_beer"
             else:
                 actual_action = actions[0]
 
