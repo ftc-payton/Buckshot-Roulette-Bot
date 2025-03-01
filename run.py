@@ -944,9 +944,9 @@ def search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, random
         elif beta_ptree[i][0][-1] == "full_end_no_win":
             b_n_prob += (beta_ptree[i][1])
 
-    if a_y_prob + a_n_prob > b_y_prob and not isclose(a_y_prob + a_n_prob, b_y_prob, rel_tol=1e-9, abs_tol=0.0):
+    if a_y_prob + a_n_prob > b_y_prob and not isclose(a_y_prob + a_n_prob, b_y_prob, rel_tol=1e-15, abs_tol=0.0):
         possibility_tree = starting_ptree + alpha_ptree
-    elif b_y_prob + b_n_prob > a_y_prob and not isclose(a_y_prob, b_y_prob + b_n_prob, rel_tol=1e-9, abs_tol=0.0):
+    elif b_y_prob + b_n_prob > a_y_prob and not isclose(a_y_prob, b_y_prob + b_n_prob, rel_tol=1e-15, abs_tol=0.0):
         possibility_tree = starting_ptree + beta_ptree
     else:
         possibility_tree = starting_ptree + beta_ptree
@@ -1014,9 +1014,9 @@ def adrenaline(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, ra
         elif a_beta_ptree[i][0][-1] == "full_end_no_win":
             a_b_n_prob += (a_beta_ptree[i][1])
 
-    if a_a_y_prob + a_a_n_prob > a_b_y_prob and not isclose(a_a_y_prob + a_a_n_prob, a_b_y_prob, rel_tol=1e-9, abs_tol=0.0):
+    if a_a_y_prob + a_a_n_prob > a_b_y_prob and not isclose(a_a_y_prob + a_a_n_prob, a_b_y_prob, rel_tol=1e-15, abs_tol=0.0):
         possibility_tree = a_starting_ptree + a_alpha_ptree
-    elif a_b_y_prob + a_b_n_prob > a_a_y_prob and not isclose(a_a_y_prob, a_b_y_prob + a_b_n_prob, rel_tol=1e-9, abs_tol=0.0):
+    elif a_b_y_prob + a_b_n_prob > a_a_y_prob and not isclose(a_a_y_prob, a_b_y_prob + a_b_n_prob, rel_tol=1e-15, abs_tol=0.0):
         possibility_tree = a_starting_ptree + a_beta_ptree
     else:
         possibility_tree = a_starting_ptree + a_beta_ptree
