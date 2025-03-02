@@ -1027,10 +1027,10 @@ def search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, random
     else:
         alpha_rating = 0
         for i in range(len(alpha_ptree)):
-            alpha_rating += (alpha_ptree[i][2] - alpha_ptree[i][3]) / alpha_ptree[i][1]
+            alpha_rating += (alpha_ptree[i][2] - alpha_ptree[i][3]) / (alpha_ptree[i][1] * (1/ a_full_prob))
         beta_rating = 0
         for i in range(len(beta_ptree)):
-            beta_rating += (beta_ptree[i][2] - beta_ptree[i][3]) / beta_ptree[i][1]
+            beta_rating += (beta_ptree[i][2] - beta_ptree[i][3]) / (beta_ptree[i][1] * (1/ b_full_prob))
         if alpha_rating > beta_rating and not isclose(alpha_rating, beta_rating, rel_tol=1e-10, abs_tol=0.0):
             possibility_tree = starting_ptree + alpha_ptree
         else:
@@ -1114,10 +1114,10 @@ def adrenaline(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, ra
     else:
         a_alpha_rating = 0
         for i in range(len(a_alpha_ptree)):
-            a_alpha_rating += (a_alpha_ptree[i][2] - a_alpha_ptree[i][3]) / a_alpha_ptree[i][1]
+            a_alpha_rating += (a_alpha_ptree[i][2] - a_alpha_ptree[i][3]) / (a_alpha_ptree[i][1] * (1/ a_a_full_prob))
         a_beta_rating = 0
         for i in range(len(a_beta_ptree)):
-            a_beta_rating += (a_beta_ptree[i][2] - a_beta_ptree[i][3]) / a_beta_ptree[i][1]
+            a_beta_rating += (a_beta_ptree[i][2] - a_beta_ptree[i][3]) / (a_beta_ptree[i][1] * (1/ a_b_full_prob))
         if a_alpha_rating > a_beta_rating and not isclose(a_alpha_rating, a_beta_rating, rel_tol=1e-10, abs_tol=0.0):
             possibility_tree = a_starting_ptree + a_alpha_ptree
         else:
