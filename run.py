@@ -52,13 +52,21 @@ class ActionWindow:
         self.prob_canvas.pack(fill="x", padx=20, pady=(20, 5))
         self.prob_canvas.bind("<Configure>", self.draw_prob_bar)
 
-        self.prob_text_label = tk.Label(
-            self.win,
-            text="You: {:.1%}   Dealer: {:.1%}   None: {:.1%}".format(
-                self.you_prob, self.dealer_prob, self.none_prob
-            )
-        )
-        self.prob_text_label.pack(padx=20, pady=(0, 20))
+        frame = tk.Frame(self.win)
+        frame.pack(padx=20, pady=(0, 20), fill='x')
+
+        self.you_label = tk.Label(frame, text="You: {:.1%}".format(self.you_prob), anchor="w")
+        self.you_label.grid(row=0, column=0, sticky="w", padx=5)
+
+        self.none_label = tk.Label(frame, text="None: {:.1%}".format(self.none_prob), anchor="center")
+        self.none_label.grid(row=0, column=1, sticky="ew", padx=5)
+
+        self.dealer_label = tk.Label(frame, text="Dealer: {:.1%}".format(self.dealer_prob), anchor="e")
+        self.dealer_label.grid(row=0, column=2, sticky="e", padx=5)
+
+        frame.grid_columnconfigure(0, weight=1)
+        frame.grid_columnconfigure(1, weight=1)
+        frame.grid_columnconfigure(2, weight=1)
 
         self.label = tk.Label(self.win, text="")
         self.label.pack(padx=20, pady=20)
@@ -81,9 +89,9 @@ class ActionWindow:
 
         self.prob_canvas.create_rectangle(0, 0, you_width, height, fill="green", width=0)
 
-        self.prob_canvas.create_rectangle(you_width, 0, you_width + dealer_width, height, fill="red", width=0)
+        self.prob_canvas.create_rectangle(you_width, 0, you_width + none_width, height, fill="yellow", width=0)
 
-        self.prob_canvas.create_rectangle(you_width + dealer_width, 0, width, height, fill="yellow", width=0)
+        self.prob_canvas.create_rectangle(you_width + none_width, 0, width, height, fill="red", width=0)
 
     def update_display(self, action):
         self.actual_action = action
