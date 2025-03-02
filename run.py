@@ -949,7 +949,16 @@ def search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, random
     elif b_y_prob + b_n_prob > a_y_prob and not isclose(a_y_prob, b_y_prob + b_n_prob, rel_tol=1e-15, abs_tol=0.0):
         possibility_tree = starting_ptree + beta_ptree
     else:
-        possibility_tree = starting_ptree + beta_ptree
+        alpha_rating = 0
+        for i in range(len(alpha_ptree)):
+            alpha_rating += (alpha_ptree[i][2] - alpha_ptree[i][3]) / alpha_ptree[i][1]
+        beta_rating = 0
+        for i in range(len(beta_ptree)):
+            beta_rating += (beta_ptree[i][2] - beta_ptree[i][3]) / beta_ptree[i][1]
+        if alpha_rating > beta_rating and not isclose(alpha_rating, beta_rating, rel_tol=1e-10, abs_tol=0.0):
+            possibility_tree = starting_ptree + alpha_ptree
+        else:
+            possibility_tree = starting_ptree + beta_ptree
 
 def adrenaline(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, passed):
     global possibility_tree
@@ -1019,7 +1028,17 @@ def adrenaline(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, ra
     elif a_b_y_prob + a_b_n_prob > a_a_y_prob and not isclose(a_a_y_prob, a_b_y_prob + a_b_n_prob, rel_tol=1e-15, abs_tol=0.0):
         possibility_tree = a_starting_ptree + a_beta_ptree
     else:
-        possibility_tree = a_starting_ptree + a_beta_ptree
+        a_alpha_rating = 0
+        for i in range(len(a_alpha_ptree)):
+            a_alpha_rating += (a_alpha_ptree[i][2] - a_alpha_ptree[i][3]) / a_alpha_ptree[i][1]
+        a_beta_rating = 0
+        for i in range(len(a_beta_ptree)):
+            a_beta_rating += (a_beta_ptree[i][2] - a_beta_ptree[i][3]) / a_beta_ptree[i][1]
+        if a_alpha_rating > a_beta_rating and not isclose(a_alpha_rating, a_beta_rating, rel_tol=1e-10, abs_tol=0.0):
+            possibility_tree = a_starting_ptree + a_alpha_ptree
+        else:
+            possibility_tree = a_starting_ptree + a_beta_ptree
+
 
 if __name__ == "__main__":
     app = UIApp()
