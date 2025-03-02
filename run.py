@@ -15,13 +15,11 @@ class ActionWindow(tk.Toplevel):
         self.geometry("700x250")
         self.resizable(False, False)
 
-        # Store current probabilities for animation purposes.
         self.current_you_prob = you_prob
         self.current_dealer_prob = dealer_prob
         self.current_none_prob = none_prob
         self.result_var = tk.StringVar()
 
-        # Mapping actions to display text.
         self.action_text_map = {
             "IC": "Invalid configuration!",
             "SR_you_shoot_self": "There is a higher chance that the shell is blank. Shoot yourself. Click which shell occurred.",
@@ -687,7 +685,6 @@ def eval(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomne
             path.append("you_shoot_op_live")
             path.append("full_end_player_win")
             possibility_tree.append([path, randomness, you_hp, dealer_hp - potential_damage])
-            print(possibility_tree)
             return [path, randomness, you_hp, dealer_hp - potential_damage]
         else:
             path.append("you_shoot_op_live")
