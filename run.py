@@ -148,7 +148,7 @@ class NumericControl(tk.Frame):
     def __init__(self, master, initial_value=0, callback=None, **kwargs):
         super().__init__(master, **kwargs)
         self.value = initial_value
-        self.callback = callback  # Called whenever the value changes.
+        self.callback = callback  # Called with (self, old_value) whenever the value changes.
 
         self.minus_btn = tk.Button(self, text="–", width=2, command=self.decrement)
         self.minus_btn.grid(row=0, column=0)
@@ -159,17 +159,23 @@ class NumericControl(tk.Frame):
         self.plus_btn = tk.Button(self, text="+", width=2, command=self.increment)
         self.plus_btn.grid(row=0, column=2)
 
+    def set_value(self, new_value):
+        self.value = new_value
+        self.value_label.config(text=str(self.value))
+
     def increment(self):
+        old_value = self.value
         self.value += 1
         self.value_label.config(text=str(self.value))
         if self.callback:
-            self.callback()
+            self.callback(self, old_value)
 
     def decrement(self):
+        old_value = self.value
         self.value -= 1
         self.value_label.config(text=str(self.value))
         if self.callback:
-            self.callback()
+            self.callback(self, old_value)
 
 
 # --- Draggable item class ---
@@ -351,16 +357,27 @@ class UIApp(tk.Tk):
         middle_frame = tk.Frame(right_inner, bg="lightgray")
         middle_frame.pack(pady=20)
 
+        def health_callback(control, old_value):
+            if control == self.max_hp_control:
+                new_max = control.value
+                if self.dealer_hp_control.value == old_value:
+                    self.dealer_hp_control.set_value(new_max)
+                if self.you_hp_control.value == old_value:
+                    self.you_hp_control.set_value(new_max)
+            else:
+                if control.value > self.max_hp_control.value:
+                    self.max_hp_control.set_value(control.value)
+
         tk.Label(middle_frame, text="Max HP:", bg="lightgray", fg="black").grid(row=0, column=0, padx=2)
-        self.max_hp_control = NumericControl(middle_frame, initial_value=0)
+        self.max_hp_control = NumericControl(middle_frame, initial_value=0, callback=health_callback)
         self.max_hp_control.grid(row=0, column=1, padx=2)
 
         tk.Label(middle_frame, text="Dealer HP:", bg="lightgray", fg="black").grid(row=1, column=0, padx=2)
-        self.dealer_hp_control = NumericControl(middle_frame, initial_value=0)
+        self.dealer_hp_control = NumericControl(middle_frame, initial_value=0, callback=health_callback)
         self.dealer_hp_control.grid(row=1, column=1, padx=2)
 
         tk.Label(middle_frame, text="Your HP:", bg="lightgray", fg="black").grid(row=2, column=0, padx=2)
-        self.you_hp_control = NumericControl(middle_frame, initial_value=0)
+        self.you_hp_control = NumericControl(middle_frame, initial_value=0, callback=health_callback)
         self.you_hp_control.grid(row=2, column=1, padx=2)
 
 
