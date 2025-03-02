@@ -7,15 +7,21 @@ possibility_tree = []
 result = ''
 maximum_hp = 0
 
-class ActionWindow:
-    def __init__(self, master, initial_action, you_prob, dealer_prob, none_prob):
-        self.master = master
-        self.actual_action = initial_action
-        self.result = None
-        self.you_prob = you_prob
-        self.dealer_prob = dealer_prob
-        self.none_prob = none_prob
 
+class ActionWindow(tk.Toplevel):
+    def __init__(self, master, initial_action, you_prob, dealer_prob, none_prob):
+        super().__init__(master)
+        self.title("Path")
+        self.geometry("700x250")
+        self.resizable(False, False)
+
+        # Store current probabilities for animation purposes.
+        self.current_you_prob = you_prob
+        self.current_dealer_prob = dealer_prob
+        self.current_none_prob = none_prob
+        self.result_var = tk.StringVar()
+
+        # Mapping actions to display text.
         self.action_text_map = {
             "IC": "Invalid configuration!",
             "SR_you_shoot_self": "There is a higher chance that the shell is blank. Shoot yourself. Click which shell occurred.",
@@ -46,109 +52,114 @@ class ActionWindow:
             "dealer_cuff": "The dealer will use handcuffs."
         }
 
-        self.win = tk.Toplevel(master)
-        self.win.title("Path")
-        self.prob_canvas = tk.Canvas(self.win, height=50)
-        self.prob_canvas.pack(fill="x", padx=20, pady=(20, 5))
-        self.prob_canvas.bind("<Configure>", self.draw_prob_bar)
+        prob_text_frame = tk.Frame(self)
+        prob_text_frame.pack(fill="x", padx=20, pady=(20, 5))
 
-        frame = tk.Frame(self.win)
-        frame.pack(padx=20, pady=(0, 20), fill='x')
-
-        self.you_label = tk.Label(frame, text="You: {:.1%}".format(self.you_prob), anchor="w")
+        self.you_label = tk.Label(prob_text_frame, text="You: {:.1%}".format(you_prob), anchor="w")
         self.you_label.grid(row=0, column=0, sticky="w", padx=5)
 
-        self.none_label = tk.Label(frame, text="None: {:.1%}".format(self.none_prob), anchor="center")
+        self.none_label = tk.Label(prob_text_frame, text="None: {:.1%}".format(none_prob), anchor="center")
         self.none_label.grid(row=0, column=1, sticky="ew", padx=5)
 
-        self.dealer_label = tk.Label(frame, text="Dealer: {:.1%}".format(self.dealer_prob), anchor="e")
+        self.dealer_label = tk.Label(prob_text_frame, text="Dealer: {:.1%}".format(dealer_prob), anchor="e")
         self.dealer_label.grid(row=0, column=2, sticky="e", padx=5)
 
-        frame.grid_columnconfigure(0, weight=1)
-        frame.grid_columnconfigure(1, weight=1)
-        frame.grid_columnconfigure(2, weight=1)
+        prob_text_frame.grid_columnconfigure(0, weight=1)
+        prob_text_frame.grid_columnconfigure(1, weight=1)
+        prob_text_frame.grid_columnconfigure(2, weight=1)
 
-        self.label = tk.Label(self.win, text="")
+        self.prob_canvas = tk.Canvas(self, height=50)
+        self.prob_canvas.pack(fill="x", padx=20, pady=(20, 5))
+        self.bind("<Configure>", lambda event: self.draw_prob_bar())
+
+        self.label = tk.Label(self, text=self.action_text_map.get(initial_action, ""))
         self.label.pack(padx=20, pady=20)
 
-        self.button_frame = tk.Frame(self.win)
+        self.button_frame = tk.Frame(self)
         self.button_frame.pack(padx=10, pady=10)
+        self.create_buttons(initial_action)
 
-        self.update_display(initial_action)
-
-    def draw_prob_bar(self, event=None):
-        width = self.prob_canvas.winfo_width()
-        height = self.prob_canvas.winfo_height()
-
-        self.prob_canvas.delete("all")
-
-        you_width = width * self.you_prob
-        dealer_width = width * self.dealer_prob
-        none_width = width - (you_width + dealer_width)
-
-
-        self.prob_canvas.create_rectangle(0, 0, you_width, height, fill="green", width=0)
-
-        self.prob_canvas.create_rectangle(you_width, 0, you_width + none_width, height, fill="yellow", width=0)
-
-        self.prob_canvas.create_rectangle(you_width + none_width, 0, width, height, fill="red", width=0)
-
-    def update_display(self, action):
-        self.actual_action = action
-
-        text_to_display = self.action_text_map.get(
-            self.actual_action, self.action_text_map[action]
-        )
-        self.label.config(text=text_to_display)
-
+    def create_buttons(self, action):
         for widget in self.button_frame.winfo_children():
             widget.destroy()
 
-        if self.actual_action.startswith("SR_"):
-            tk.Button(
-                self.button_frame, text="Live",
-                command=lambda: self.set_result("Live")
-            ).pack(side="left", padx=10)
-            tk.Button(
-                self.button_frame, text="Blank",
-                command=lambda: self.set_result("Blank")
-            ).pack(side="left", padx=10)
-        elif self.actual_action.startswith("CR_"):
-            tk.Button(
-                self.button_frame, text="Self",
-                command=lambda: self.set_result("Self")
-            ).pack(side="left", padx=10)
-            tk.Button(
-                self.button_frame, text="You",
-                command=lambda: self.set_result("You")
-            ).pack(side="left", padx=10)
-        elif self.actual_action.startswith("HR_"):
-            tk.Button(
-                self.button_frame, text="Yes",
-                command=lambda: self.set_result("Yes")
-            ).pack(side="left", padx=10)
-            tk.Button(
-                self.button_frame, text="No",
-                command=lambda: self.set_result("No")
-            ).pack(side="left", padx=10)
+        if action.startswith("SR_"):
+            tk.Button(self.button_frame, text="Live",
+                      command=lambda: self.on_choice("Live")).pack(side="left", padx=10)
+            tk.Button(self.button_frame, text="Blank",
+                      command=lambda: self.on_choice("Blank")).pack(side="left", padx=10)
+        elif action.startswith("CR_"):
+            tk.Button(self.button_frame, text="Self",
+                      command=lambda: self.on_choice("Self")).pack(side="left", padx=10)
+            tk.Button(self.button_frame, text="You",
+                      command=lambda: self.on_choice("You")).pack(side="left", padx=10)
+        elif action.startswith("HR_"):
+            tk.Button(self.button_frame, text="Yes",
+                      command=lambda: self.on_choice("Yes")).pack(side="left", padx=10)
+            tk.Button(self.button_frame, text="No",
+                      command=lambda: self.on_choice("No")).pack(side="left", padx=10)
         else:
-            tk.Button(
-                self.button_frame, text="Next",
-                command=lambda: self.set_result("Next")
-            ).pack(padx=10)
+            tk.Button(self.button_frame, text="Next",
+                      command=lambda: self.on_choice("Next")).pack(padx=10)
 
-    def set_result(self, choice):
-        global result
-        result = choice
+    def on_choice(self, choice):
+        self.result_var.set(choice)
 
-        self.win.destroy()
+    def update_window(self, new_action, new_you_prob, new_dealer_prob, new_none_prob):
+        self.label.config(text=self.action_text_map.get(new_action, ""))
+
+        self.create_buttons(new_action)
+
+        self.you_label.config(text="You: {:.1%}".format(new_you_prob))
+        self.none_label.config(text="None: {:.1%}".format(new_none_prob))
+        self.dealer_label.config(text="Dealer: {:.1%}".format(new_dealer_prob))
+
+        self.animate_prob_bar(new_you_prob, new_dealer_prob, new_none_prob)
+
+    def animate_prob_bar(self, target_you, target_dealer, target_none, steps=250, delay=1):
+        diff_you = (target_you - self.current_you_prob) / steps
+        diff_dealer = (target_dealer - self.current_dealer_prob) / steps
+        diff_none = (target_none - self.current_none_prob) / steps
+
+        def step(i):
+            if i < steps:
+                self.current_you_prob += diff_you
+                self.current_dealer_prob += diff_dealer
+                self.current_none_prob += diff_none
+                self.draw_prob_bar()
+                self.after(delay, lambda: step(i + 1))
+            else:
+                # Ensure the final values match the target exactly.
+                self.current_you_prob = target_you
+                self.current_dealer_prob = target_dealer
+                self.current_none_prob = target_none
+                self.draw_prob_bar()
+
+        step(0)
+
+    def draw_prob_bar(self):
+        width = self.prob_canvas.winfo_width()
+        height = self.prob_canvas.winfo_height()
+        self.prob_canvas.delete("all")
+
+        you_width = width * self.current_you_prob
+        dealer_width = width * self.current_dealer_prob
+        none_width = width - (you_width + dealer_width)
+
+        self.prob_canvas.create_rectangle(0, 0, you_width, height, fill="green", width=0)
+        self.prob_canvas.create_rectangle(you_width, 0, you_width + none_width, height, fill="yellow", width=0)
+        self.prob_canvas.create_rectangle(you_width + none_width, 0, width, height, fill="red", width=0)
+
+    def wait_for_result(self):
+        self.wait_variable(self.result_var)
+        return self.result_var.get()
 
 
 class NumericControl(tk.Frame):
     def __init__(self, master, initial_value=0, callback=None, **kwargs):
         super().__init__(master, **kwargs)
         self.value = initial_value
-        self.callback = callback  # Called with (self, old_value) whenever the value changes.
+        self.callback = callback
 
         self.minus_btn = tk.Button(self, text="–", width=2, command=self.decrement)
         self.minus_btn.grid(row=0, column=0)
@@ -264,6 +275,7 @@ class UIApp(tk.Tk):
         super().__init__()
         self.title("Buckshot Roulette Bot")
         self.geometry("1350x767")
+        self.resizable(False, False)
 
         self.left_frame = Frame(self, width=200, bg="lightgray")
         self.left_frame.pack(side="left", fill="y")
@@ -412,6 +424,7 @@ class UIApp(tk.Tk):
 
         game_not_resolved = True
         turn_index = 1
+        action_window = None
         while game_not_resolved:
             actual_action = ""
             actions = []
@@ -474,8 +487,11 @@ class UIApp(tk.Tk):
 
             global result
             result = ''
-            action_window = ActionWindow(self, actual_action, you_prob, dealer_prob, none_prob)
-            self.wait_window(action_window.win)
+            if not action_window:
+                action_window = ActionWindow(self, actual_action, you_prob, dealer_prob, none_prob)
+            else:
+                action_window.update_window(actual_action, you_prob, dealer_prob, none_prob)
+            result = action_window.wait_for_result()
             if not result:
                 return
             print(result)
@@ -562,26 +578,29 @@ class UIApp(tk.Tk):
         if possibility_tree[0][0][-1] == "full_end_player_win":
             for i in range(len(possibility_tree[0][0]) - turn_index - 1):
                 result = ''
-                action_window = ActionWindow(self, possibility_tree[0][0][turn_index], 1.0, 0.0, 0.0)
-                self.wait_window(action_window.win)
+                action_window.update_window(possibility_tree[0][0][turn_index], 1.0, 0.0, 0.0)
+                result = action_window.wait_for_result()
                 if not result:
                     return
                 turn_index += 1
-            action_window = ActionWindow(self, possibility_tree[0][0][-1], 1.0, 0.0, 0.0)
-            self.wait_window(action_window.win)
+            action_window.update_window(possibility_tree[0][0][-1], 1.0, 0.0, 0.0)
+            action_window.wait_for_result()
+            action_window.destroy()
         elif possibility_tree[0][0][-1] == "full_end_dealer_win":
-            action_window = ActionWindow(self, possibility_tree[0][0][-1], 0.0, 1.0, 0.0)
-            self.wait_window(action_window.win)
+            action_window.update_window(possibility_tree[0][0][-1], 0.0, 1.0, 0.0)
+            action_window.wait_for_result()
+            action_window.destroy()
         elif possibility_tree[0][0][-1] == "full_end_no_win":
             for i in range(len(possibility_tree[0][0]) - turn_index - 1):
                 result = ''
-                action_window = ActionWindow(self, possibility_tree[0][0][turn_index], 0.0, 0.0, 1.0)
-                self.wait_window(action_window.win)
+                action_window.update_window(possibility_tree[0][0][turn_index], 0.0, 0.0, 1.0)
+                result = action_window.wait_for_result()
                 if not result:
                     return
                 turn_index += 1
-            action_window = ActionWindow(self, possibility_tree[0][0][-1], 0.0, 0.0, 1.0)
-            self.wait_window(action_window.win)
+            action_window.update_window(possibility_tree[0][0][-1], 0.0, 0.0, 1.0)
+            action_window.wait_for_result()
+            action_window.destroy()
 
 
 
@@ -590,7 +609,8 @@ class UIApp(tk.Tk):
     def go(self, you_items, dealer_items, live, blank, dealer_hp, you_hp, max_hp):
         if ((live <= 0) and (blank <= 0)) or (dealer_hp <= 0) or (you_hp <= 0) or (max_hp < you_hp or max_hp < dealer_hp):
             action_window = ActionWindow(self, "IC", 0.0, 0.0, 0.0)
-            self.wait_window(action_window.win)
+            action_window.wait_for_result()
+            action_window.destroy()
             return None
 
         print("\r\n")
