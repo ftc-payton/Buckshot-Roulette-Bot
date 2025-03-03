@@ -48,7 +48,8 @@ class ActionWindow(tk.Toplevel):
             "you_adrenaline_cuff": "Use the adrenaline to steal the handcuffs.",
             "dealer_cuff": "The dealer will use handcuffs.",
             "you_cig": "Use the cigarettes.",
-            "you_adrenaline_cig": "Use the adrenaline to steal the cigarettes."
+            "you_adrenaline_cig": "Use the adrenaline to steal the cigarettes.",
+            "dealer_cig": "The dealer will use cigarettes."
         }
 
         prob_text_frame = tk.Frame(self)
@@ -971,6 +972,14 @@ def sim_dealer_action(you_items, dealer_items, live, blank, dealer_hp, you_hp, p
         new_path = path.copy()
         new_path.append("dealer_cuff")
         sim_dealer_action(you_items, new_dealer_items.copy(), live, blank, dealer_hp, you_hp, new_path.copy(), randomness, choice, 'you', None)
+        return
+
+    if "Cigarette Pack" in dealer_items and dealer_hp < maximum_hp:
+        new_dealer_items = dealer_items.copy()
+        new_dealer_items.remove("Cigarette Pack")
+        new_path = path.copy()
+        new_path.append("dealer_cig")
+        sim_dealer_action(you_items, new_dealer_items.copy(), live, blank, dealer_hp+1, you_hp, new_path.copy(),randomness, choice, cuffed, prev_cuffed)
         return
 
     if is_live_guaranteed:
