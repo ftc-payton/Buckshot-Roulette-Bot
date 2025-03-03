@@ -7,7 +7,6 @@ possibility_tree = []
 result = ''
 maximum_hp = 0
 
-
 class ActionWindow(tk.Toplevel):
     def __init__(self, master, initial_action, you_prob, dealer_prob, none_prob):
         super().__init__(master)
@@ -47,7 +46,9 @@ class ActionWindow(tk.Toplevel):
             "you_adrenaline_beer_blank": "Use the adrenaline to steal the beer. You are guaranteed to eject a blank round.",
             "you_cuff": "Use the handcuffs.",
             "you_adrenaline_cuff": "Use the adrenaline to steal the handcuffs.",
-            "dealer_cuff": "The dealer will use handcuffs."
+            "dealer_cuff": "The dealer will use handcuffs.",
+            "you_cig": "Use the cigarettes.",
+            "you_adrenaline_cig": "Use the adrenaline to steal the cigarettes."
         }
 
         prob_text_frame = tk.Frame(self)
@@ -1002,6 +1003,7 @@ def search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, random
     possibility_tree = []
     alpha_ptree = []
     beta_ptree = []
+    global maximum_hp
 
     if "Handcuffs" in you_items and not "cuffs" in passed and not prev_cuffed == 'dealer' and not cuffed == 'dealer':
         new_you_items = you_items.copy()
@@ -1041,6 +1043,19 @@ def search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, random
         possibility_tree = []
         new_passed = passed.copy()
         new_passed.append("beer")
+        search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, new_passed, prev_cuffed, cuffed)
+        beta_ptree = deepcopy(possibility_tree)
+        action_done = True
+    elif "Cigarette Pack" in you_items and not "cig" in passed and you_hp < maximum_hp:
+        new_you_items = you_items.copy()
+        new_you_items.remove("Cigarette Pack")
+        new_path = path.copy()
+        new_path.append("you_cig")
+        eval(new_you_items.copy(),dealer_items,live,blank,dealer_hp,you_hp+1,new_path.copy(),randomness,guarantee,'you', False, cuffed, prev_cuffed)
+        alpha_ptree = deepcopy(possibility_tree)
+        possibility_tree = []
+        new_passed = passed.copy()
+        new_passed.append("cig")
         search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, new_passed, prev_cuffed, cuffed)
         beta_ptree = deepcopy(possibility_tree)
         action_done = True
@@ -1153,6 +1168,21 @@ def adrenaline(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, ra
         new_passed = passed.copy()
         new_passed.append("beer")
         adrenaline(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, new_passed)
+        a_beta_ptree = deepcopy(possibility_tree)
+        a_action_done = True
+    elif "Cigarette Pack" in dealer_items and not "cig" in passed and you_hp < maximum_hp:
+        a_new_you_items = you_items.copy()
+        a_new_you_items.remove("Adrenaline")
+        a_new_dealer_items = dealer_items.copy()
+        a_new_dealer_items.remove("Cigarette Pack")
+        new_path = path.copy()
+        new_path.append("you_adrenaline_cig")
+        eval(a_new_you_items.copy(),a_new_dealer_items.copy(),live,blank,dealer_hp,you_hp+1,new_path.copy(),randomness,guarantee,'you', False, cuffed, prev_cuffed)
+        a_alpha_ptree = deepcopy(possibility_tree)
+        possibility_tree = []
+        new_passed = passed.copy()
+        new_passed.append("cig")
+        search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, new_passed, prev_cuffed, cuffed)
         a_beta_ptree = deepcopy(possibility_tree)
         a_action_done = True
     else:
