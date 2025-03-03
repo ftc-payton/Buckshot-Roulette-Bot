@@ -55,7 +55,9 @@ class ActionWindow(tk.Toplevel):
             "you_invert_blank": "Use the inverter.",
             "you_adrenaline_invert_uk": "Use the adrenaline to steal the inverter.",
             "you_adrenaline_invert_live": "Use the adrenaline to steal the inverter.",
-            "you_adrenaline_invert_blank": "Use the adrenaline to steal the inverter."
+            "you_adrenaline_invert_blank": "Use the adrenaline to steal the inverter.",
+            "MR_you_exp": "Use the expired medicine. Did it succeed?",
+            "MR_you_adrenaline_exp": "Use the adrenaline to steal the expired medicine. Did it succeed?"
         }
 
         prob_text_frame = tk.Frame(self)
@@ -100,6 +102,11 @@ class ActionWindow(tk.Toplevel):
             tk.Button(self.button_frame, text="You",
                       command=lambda: self.on_choice("You")).pack(side="left", padx=10)
         elif action.startswith("HR_"):
+            tk.Button(self.button_frame, text="Yes",
+                      command=lambda: self.on_choice("Yes")).pack(side="left", padx=10)
+            tk.Button(self.button_frame, text="No",
+                      command=lambda: self.on_choice("No")).pack(side="left", padx=10)
+        elif action.startswith("MR_"):
             tk.Button(self.button_frame, text="Yes",
                       command=lambda: self.on_choice("Yes")).pack(side="left", padx=10)
             tk.Button(self.button_frame, text="No",
@@ -461,6 +468,8 @@ class UIApp(tk.Tk):
             action_common_you_adrenaline_glass = all("you_adrenaline_glass" in item for item in actions) if actions else False
             action_common_you_invert = all("you_invert" in item for item in actions) if actions else False
             action_common_you_adrenaline_invert = all("you_adrenaline_invert" in item for item in actions) if actions else False
+            action_common_you_exp = all("you_exp" in item for item in actions) if actions else False
+            action_common_you_adrenaline_exp = all("you_adrenaline_exp" in item for item in actions) if actions else False
             action_same = all(x == actions[0] for x in actions) if actions else False
             if not action_same:
                 if action_common_you_shoot_op:
@@ -490,6 +499,10 @@ class UIApp(tk.Tk):
                     actual_action = "you_invert_uk"
                 elif action_common_you_adrenaline_invert:
                     actual_action = "you_invert_uk"
+                elif action_common_you_exp:
+                    actual_action = "MR_you_exp"
+                elif action_common_you_adrenaline_exp:
+                    actual_action = "MR_you_adrenaline_exp"
             else:
                 actual_action = actions[0]
 
@@ -567,7 +580,7 @@ class UIApp(tk.Tk):
                                 deleted = False
                         except IndexError:
                             deleted = False
-            elif result == "Yes":
+            elif result == "Yes" and 'HR' in actual_action:
                 for i in range(len(possibility_tree)):
                     deleted = True
                     while deleted:
@@ -579,12 +592,36 @@ class UIApp(tk.Tk):
                                 deleted = False
                         except IndexError:
                             deleted = False
-            elif result == "No":
+            elif result == "No" and 'HR' in actual_action:
                 for i in range(len(possibility_tree)):
                     deleted = True
                     while deleted:
                         try:
                             if "dealer_saw" in possibility_tree[i][0][turn_index]:
+                                possibility_tree.pop(i)
+                                deleted = True
+                            else:
+                                deleted = False
+                        except IndexError:
+                            deleted = False
+            elif result == "Yes" and 'MR' in actual_action:
+                for i in range(len(possibility_tree)):
+                    deleted = True
+                    while deleted:
+                        try:
+                            if not "exp_hit" in possibility_tree[i][0][turn_index]:
+                                possibility_tree.pop(i)
+                                deleted = True
+                            else:
+                                deleted = False
+                        except IndexError:
+                            deleted = False
+            elif result == "No" and 'MR' in actual_action:
+                for i in range(len(possibility_tree)):
+                    deleted = True
+                    while deleted:
+                        try:
+                            if "exp_hit" in possibility_tree[i][0][turn_index]:
                                 possibility_tree.pop(i)
                                 deleted = True
                             else:
@@ -819,6 +856,76 @@ def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomn
                 blank_path = stored_path.copy()
                 blank_path.append("dealer_adrenaline_beer_blank")
                 blank_eval = eval(new_you_items.copy(), new_dealer_items.copy(), live, blank - 1, dealer_hp, you_hp, blank_path.copy(), blank_randomness, None, turn, False, cuffed, prev_cuffed)
+                blank_ptree = deepcopy(possibility_tree)
+                possibility_tree = live_ptree + blank_ptree
+                return [live_eval, blank_eval]
+
+    if action == 'exp':
+        if turn == 'you':
+            if whose == 'turn':
+                stored_path = path.copy()
+                stored_dealer_items = dealer_items.copy()
+                new_you_items = you_items.copy()
+                new_you_items.remove("Expired Medicine")
+                live_path = stored_path.copy()
+                live_path.append("you_exp_hit")
+                live_eval = eval(new_you_items.copy(), stored_dealer_items.copy(), live, blank, dealer_hp, (you_hp + 2) if (you_hp + 2) <= maximum_hp else (you_hp + 1) , live_path.copy(), randomness * 0.5, None, turn, False, cuffed, prev_cuffed)
+                live_ptree = deepcopy(possibility_tree)
+                possibility_tree = []
+                blank_path = stored_path.copy()
+                blank_path.append("you_exp_miss")
+                blank_eval = eval(new_you_items.copy(), stored_dealer_items.copy(), live, blank, dealer_hp, you_hp - 1, blank_path.copy(), randomness * 0.5, None, turn, False, cuffed, prev_cuffed)
+                blank_ptree = deepcopy(possibility_tree)
+                possibility_tree = live_ptree + blank_ptree
+                return [live_eval, blank_eval]
+            elif whose == 'other':
+                stored_path = path.copy()
+                new_dealer_items = dealer_items.copy()
+                new_dealer_items.remove("Expired Medicine")
+                new_you_items = you_items.copy()
+                new_you_items.remove("Adrenaline")
+                live_path = stored_path.copy()
+                live_path.append("you_adrenaline_exp_hit")
+                live_eval = eval(new_you_items.copy(), new_dealer_items.copy(), live, blank, dealer_hp, (you_hp + 2) if (you_hp + 2) <= maximum_hp else (you_hp + 1), live_path.copy(), randomness * 0.5, None, turn, False, cuffed, prev_cuffed)
+                live_ptree = deepcopy(possibility_tree)
+                possibility_tree = []
+                blank_path = stored_path.copy()
+                blank_path.append("you_adrenaline_exp_miss")
+                blank_eval = eval(new_you_items.copy(), new_dealer_items.copy(), live, blank, dealer_hp, you_hp - 1, blank_path.copy(), randomness * 0.5, None, turn, False, cuffed, prev_cuffed)
+                blank_ptree = deepcopy(possibility_tree)
+                possibility_tree = live_ptree + blank_ptree
+                return [live_eval, blank_eval]
+        elif turn == 'dealer':
+            if whose == 'turn':
+                stored_path = path.copy()
+                new_dealer_items = dealer_items.copy()
+                new_dealer_items.remove("Expired Medicine")
+                stored_you_items = you_items.copy()
+                live_path = stored_path.copy()
+                live_path.append("dealer_exp_hit")
+                live_eval = eval(stored_you_items.copy(), new_dealer_items.copy(), live, blank, (dealer_hp + 2) if (dealer_hp + 2) <= maximum_hp else (dealer_hp + 1), you_hp, live_path.copy(), randomness * 0.5, None, turn, False, cuffed, prev_cuffed)
+                live_ptree = deepcopy(possibility_tree)
+                possibility_tree = []
+                blank_path = stored_path.copy()
+                blank_path.append("dealer_exp_miss")
+                blank_eval = eval(stored_you_items.copy(), new_dealer_items.copy(), live, blank, dealer_hp - 1, you_hp, blank_path.copy(), randomness * 0.5, None, turn, False, cuffed, prev_cuffed)
+                blank_ptree = deepcopy(possibility_tree)
+                possibility_tree = live_ptree + blank_ptree
+                return [live_eval, blank_eval]
+            elif whose == 'other':
+                stored_path = path.copy()
+                new_dealer_items = dealer_items.copy()
+                new_dealer_items.remove("Adrenaline")
+                new_you_items = you_items.copy()
+                new_you_items.remove("Expired Medicine")
+                live_path = stored_path.copy()
+                live_path.append("dealer_adrenaline_exp_hit")
+                live_eval = eval(new_you_items.copy(), new_dealer_items.copy(), live, blank, (dealer_hp + 2) if (dealer_hp + 2) <= maximum_hp else (dealer_hp + 1), you_hp, live_path.copy(), randomness * 0.5, None, turn, False, cuffed, prev_cuffed)
+                live_ptree = deepcopy(possibility_tree)
+                possibility_tree = []
+                blank_path = stored_path.copy()
+                blank_path.append("dealer_adrenaline_exp_miss")
+                blank_eval = eval(new_you_items.copy(), new_dealer_items.copy(), live, blank, dealer_hp - 1, you_hp, blank_path.copy(), randomness * 0.5, None, turn, False, cuffed, prev_cuffed)
                 blank_ptree = deepcopy(possibility_tree)
                 possibility_tree = live_ptree + blank_ptree
                 return [live_eval, blank_eval]
@@ -1194,6 +1301,15 @@ def search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, random
         search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, new_passed, prev_cuffed, cuffed)
         beta_ptree = deepcopy(possibility_tree)
         action_done = True
+    elif "Expired Medicine" in you_items and not "exp" in passed and you_hp < maximum_hp:
+        split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, "exp", "you", live / (live + blank), 1, 'turn', cuffed, prev_cuffed)
+        alpha_ptree = deepcopy(possibility_tree)
+        possibility_tree = []
+        new_passed = passed.copy()
+        new_passed.append("exp")
+        search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, new_passed, prev_cuffed, cuffed)
+        beta_ptree = deepcopy(possibility_tree)
+        action_done = True
     elif "Adrenaline" in you_items and not "adrenaline" in passed:
         if dealer_items:
             adrenaline(you_items,dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, passed, prev_cuffed, cuffed)
@@ -1340,6 +1456,15 @@ def adrenaline(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, ra
         possibility_tree = []
         new_passed = passed.copy()
         new_passed.append("cig")
+        search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, new_passed, prev_cuffed, cuffed)
+        a_beta_ptree = deepcopy(possibility_tree)
+        a_action_done = True
+    elif "Expired Medicine" in dealer_items and not "exp" in passed and you_hp < maximum_hp:
+        split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, "exp", "you", live / (live + blank), 1, 'other', cuffed, prev_cuffed)
+        a_alpha_ptree = deepcopy(possibility_tree)
+        possibility_tree = []
+        new_passed = passed.copy()
+        new_passed.append("exp")
         search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, new_passed, prev_cuffed, cuffed)
         a_beta_ptree = deepcopy(possibility_tree)
         a_action_done = True
