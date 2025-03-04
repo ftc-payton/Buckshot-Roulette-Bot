@@ -18,6 +18,7 @@ class ActionWindow(tk.Toplevel):
         self.current_dealer_prob = dealer_prob
         self.current_none_prob = none_prob
         self.result_var = tk.StringVar()
+        self.is_guaranteed_list = False
 
         self.action_text_map = {
             "IC": "Invalid configuration!",
@@ -35,7 +36,9 @@ class ActionWindow(tk.Toplevel):
             "dealer_shoot_self_blank": "The Dealer will shoot itself with a guaranteed blank round.",
             "you_saw": "There is a higher or equal chance that the shell is live. Use the hand saw.",
             "HR_dealer_saw": "Did the dealer use the hand saw?",
+            "HR_dealer_adrenaline_saw": "Did the dealer use adrenaline to steal your hand saw?",
             "dealer_saw": "The dealer will use the hand saw.",
+            "dealer_adrenaline_saw": "The dealer will use adrenaline to steal your hand saw.",
             "SR_you_glass": "Use the magnifying glass. Click which shell is in the chamber.",
             "SR_you_beer": "Use the beer. Click which shell was ejected.",
             "you_beer_live": "Use the beer. You are guaranteed to eject a live round.",
@@ -47,9 +50,11 @@ class ActionWindow(tk.Toplevel):
             "you_cuff": "Use the handcuffs.",
             "you_adrenaline_cuff": "Use the adrenaline to steal the handcuffs.",
             "dealer_cuff": "The dealer will use handcuffs.",
+            "dealer_adrenaline_cuff": "The dealer will use adrenaline to steal your handcuffs.",
             "you_cig": "Use the cigarettes.",
             "you_adrenaline_cig": "Use the adrenaline to steal the cigarettes.",
             "dealer_cig": "The dealer will use cigarettes.",
+            "dealer_adrenaline_cig": "The dealer will use adrenaline to steal your cigarettes.",
             "you_invert_uk": "Use the inverter.",
             "you_invert_live": "Use the inverter.",
             "you_invert_blank": "Use the inverter.",
@@ -57,7 +62,18 @@ class ActionWindow(tk.Toplevel):
             "you_adrenaline_invert_live": "Use the adrenaline to steal the inverter.",
             "you_adrenaline_invert_blank": "Use the adrenaline to steal the inverter.",
             "MR_you_exp": "Use the expired medicine. Did it succeed?",
-            "MR_you_adrenaline_exp": "Use the adrenaline to steal the expired medicine. Did it succeed?"
+            "MR_you_adrenaline_exp": "Use the adrenaline to steal the expired medicine. Did it succeed?",
+            "MR_dealer_exp": "The dealer will use expired medicine. Did it succeed?",
+            "dealer_invert": "The dealer will use the inverter.",
+            "SR_dealer_beer": "Which shell did the dealer eject?",
+            "HR_dealer_invert": "Did the dealer use the inverter?",
+            "HR_dealer_adrenaline_invert": "Did the dealer use adrenaline to steal your inverter?",
+            "HR_dealer_beer": "Did the dealer use the beer?",
+            "dealer_beer_blank": "The dealer will use the beer to eject the guaranteed blank round.",
+            "dealer_glass": "The dealer will use the magnifying glass.",
+            "dealer_adrenaline_glass": "The dealer will use adrenaline to steal your magnifying glass.",
+            "SR_dealer_adrenaline_beer": "Which shell did the dealer eject?",
+            "HR_dealer_adrenaline_beer": "Did the dealer use adrenaline to steal your beer?"
         }
 
         prob_text_frame = tk.Frame(self)
@@ -80,7 +96,7 @@ class ActionWindow(tk.Toplevel):
         self.prob_canvas.pack(fill="x", padx=20, pady=(20, 5))
         self.bind("<Configure>", lambda event: self.draw_prob_bar())
 
-        self.label = tk.Label(self, text=self.action_text_map.get(initial_action, ""))
+        self.label = tk.Label(self, text=(self.action_text_map.get(initial_action, "") if self.current_dealer_prob != 1.0 else "You are guaranteed to lose."))
         self.label.pack(padx=20, pady=20)
 
         self.button_frame = tk.Frame(self)
@@ -91,7 +107,19 @@ class ActionWindow(tk.Toplevel):
         for widget in self.button_frame.winfo_children():
             widget.destroy()
 
-        if action.startswith("SR_"):
+        if self.current_dealer_prob == 1.0:
+            tk.Button(self.button_frame, text="Next",
+                      command=lambda: self.on_choice("Next")).pack(padx=10)
+        elif isinstance(action, list):
+            if not self.is_guaranteed_list:
+                tk.Button(self.button_frame, text="Yes",
+                        command=lambda: self.on_choice("Yes")).pack(side="left", padx=10)
+                tk.Button(self.button_frame, text="No",
+                        command=lambda: self.on_choice("No")).pack(side="left", padx=10)
+            else:
+                tk.Button(self.button_frame, text="Next",
+                          command=lambda: self.on_choice("Next")).pack(padx=10)
+        elif action.startswith("SR_"):
             tk.Button(self.button_frame, text="Live",
                       command=lambda: self.on_choice("Live")).pack(side="left", padx=10)
             tk.Button(self.button_frame, text="Blank",
@@ -118,8 +146,8 @@ class ActionWindow(tk.Toplevel):
     def on_choice(self, choice):
         self.result_var.set(choice)
 
-    def update_window(self, new_action, new_you_prob, new_dealer_prob, new_none_prob):
-        self.label.config(text=self.action_text_map.get(new_action, ""))
+    def update_window(self, new_action, new_you_prob, new_dealer_prob, new_none_prob, guaranteed_action_list = False):
+        self.label.config(text=(self.action_text_map.get(new_action, "") if new_dealer_prob != 1.0 else "You are guaranteed to lose."))
 
         self.create_buttons(new_action)
 
@@ -142,7 +170,6 @@ class ActionWindow(tk.Toplevel):
                 self.draw_prob_bar()
                 self.after(delay, lambda: step(i + 1))
             else:
-                # Ensure the final values match the target exactly.
                 self.current_you_prob = target_you
                 self.current_dealer_prob = target_dealer
                 self.current_none_prob = target_none
@@ -165,7 +192,10 @@ class ActionWindow(tk.Toplevel):
 
     def wait_for_result(self):
         self.wait_variable(self.result_var)
-        return self.result_var.get()
+        if self.current_dealer_prob != 1.0:
+            return self.result_var.get()
+        else:
+            self.destroy()
 
 
 class NumericControl(tk.Frame):
@@ -450,6 +480,22 @@ class UIApp(tk.Tk):
         turn_index = 1
         action_window = None
         while game_not_resolved:
+            you_prob = 0.0
+            dealer_prob = 0.0
+            none_prob = 0.0
+            full_prob = 0.0
+            for i in range(len(possibility_tree)):
+                full_prob += possibility_tree[i][1]
+
+            for i in range(len(possibility_tree)):
+                if possibility_tree[i][0][-1] == "full_end_dealer_win":
+                    dealer_prob += (possibility_tree[i][1] * (1 / full_prob))
+                elif possibility_tree[i][0][-1] == "full_end_player_win":
+                    you_prob += (possibility_tree[i][1] * (1 / full_prob))
+                elif possibility_tree[i][0][-1] == "full_end_no_win":
+                    none_prob += (possibility_tree[i][1] * (1 / full_prob))
+
+            global result
             actual_action = ""
             actions = []
             for i in range(len(possibility_tree)):
@@ -470,6 +516,8 @@ class UIApp(tk.Tk):
             action_common_you_adrenaline_invert = all("you_adrenaline_invert" in item for item in actions) if actions else False
             action_common_you_exp = all("you_exp" in item for item in actions) if actions else False
             action_common_you_adrenaline_exp = all("you_adrenaline_exp" in item for item in actions) if actions else False
+            action_common_dealer_exp = all("dealer_exp" in item for item in actions) if actions else False
+            action_common_dealer_think = all("dealer_think" in item for item in actions) if actions else False
             action_same = all(x == actions[0] for x in actions) if actions else False
             if not action_same:
                 if action_common_you_shoot_op:
@@ -503,25 +551,229 @@ class UIApp(tk.Tk):
                     actual_action = "MR_you_exp"
                 elif action_common_you_adrenaline_exp:
                     actual_action = "MR_you_adrenaline_exp"
+                elif action_common_dealer_exp:
+                    actual_action = "MR_dealer_exp"
+                elif action_common_dealer_think:
+                    blank_think = None
+                    live_think = None
+                    for i in range(len(possibility_tree)):
+                        if possibility_tree[i][0][turn_index] == 'dealer_think_blank':
+                            blank_think = possibility_tree[i][0]
+                        elif possibility_tree[i][0][turn_index] == 'dealer_think_live':
+                            live_think = possibility_tree[i][0]
+                        if blank_think and live_think:
+                            break
+                    blank_think_acts = []
+                    live_think_acts = []
+                    for i in range(len(blank_think)):
+                        if not 'dealer_shoot' in blank_think[turn_index + i]:
+                            blank_think_acts.append(blank_think[turn_index + i])
+                        else:
+                            blank_turn_index = turn_index + i
+                            break
+                    for i in range(len(live_think)):
+                        if not 'dealer_shoot' in live_think[turn_index + i]:
+                            live_think_acts.append(live_think[turn_index + i])
+                        else:
+                            live_turn_index = turn_index + i
+                            break
+                    print(blank_think_acts)
+                    print(live_think_acts)
+                    ti_increase = 1
+                    if 'dealer_invert' in blank_think_acts:
+                        result = ''
+                        if not action_window:
+                            action_window = ActionWindow(self, "HR_dealer_invert", you_prob, dealer_prob, none_prob)
+                        else:
+                            action_window.update_window("HR_dealer_invert", you_prob, dealer_prob, none_prob)
+                        result = action_window.wait_for_result()
+                        if not result:
+                            return
+                        if result == 'No':
+                            ti_increase = 1
+                        else:
+                            ti_increase = 3
+                        print(result)
+                    elif 'dealer_adrenaline_invert' in blank_think_acts:
+                        result = ''
+                        if not action_window:
+                            action_window = ActionWindow(self, "HR_dealer_adrenaline_invert", you_prob, dealer_prob, none_prob)
+                        else:
+                            action_window.update_window("HR_dealer_adrenaline_invert", you_prob, dealer_prob, none_prob)
+                        result = action_window.wait_for_result()
+                        if not result:
+                            return
+                        if result == 'No':
+                            ti_increase = 1
+                        else:
+                            ti_increase = 3
+                        print(result)
+                    elif 'dealer_beer_live' in blank_think_acts or 'dealer_beer_blank' in blank_think_acts:
+                        result = ''
+                        if not action_window:
+                            action_window = ActionWindow(self, "HR_dealer_beer", you_prob, dealer_prob, none_prob)
+                        else:
+                            action_window.update_window("HR_dealer_beer", you_prob, dealer_prob, none_prob)
+                        result = action_window.wait_for_result()
+                        if not result:
+                            return
+                        if result == 'No':
+                            ti_increase = 1
+                        else:
+                            ti_increase = 2
+                        print(result)
+                        if result == 'Yes':
+                            for i in range(len(possibility_tree)):
+                                deleted = True
+                                while deleted:
+                                    try:
+                                        if 'dealer_think_live' in possibility_tree[i][0][turn_index]:
+                                            possibility_tree.pop(i)
+                                            deleted = True
+                                        else:
+                                            deleted = False
+                                    except IndexError:
+                                        deleted = False
+                            you_prob = 0.0
+                            dealer_prob = 0.0
+                            none_prob = 0.0
+                            full_prob = 0.0
+                            for i in range(len(possibility_tree)):
+                                full_prob += possibility_tree[i][1]
+
+                            for i in range(len(possibility_tree)):
+                                if possibility_tree[i][0][-1] == "full_end_dealer_win":
+                                    dealer_prob += (possibility_tree[i][1] * (1 / full_prob))
+                                elif possibility_tree[i][0][-1] == "full_end_player_win":
+                                    you_prob += (possibility_tree[i][1] * (1 / full_prob))
+                                elif possibility_tree[i][0][-1] == "full_end_no_win":
+                                    none_prob += (possibility_tree[i][1] * (1 / full_prob))
+
+                            action_window.update_window("SR_dealer_beer", you_prob, dealer_prob, none_prob)
+                            result = action_window.wait_for_result()
+                            if not result:
+                                return
+                    elif 'dealer_adrenaline_beer_live' in blank_think_acts or 'dealer_adrenaline_beer_blank' in blank_think_acts:
+                        result = ''
+                        if not action_window:
+                            action_window = ActionWindow(self, "HR_dealer_adrenaline_beer", you_prob, dealer_prob, none_prob)
+                        else:
+                            action_window.update_window("HR_dealer_adrenaline_beer", you_prob, dealer_prob, none_prob)
+                        result = action_window.wait_for_result()
+                        if not result:
+                            return
+                        if result == 'No':
+                            ti_increase = 1
+                        else:
+                            ti_increase = 2
+                        print(result)
+                        if result == 'Yes':
+                            for i in range(len(possibility_tree)):
+                                deleted = True
+                                while deleted:
+                                    try:
+                                        if 'dealer_think_live' in possibility_tree[i][0][turn_index]:
+                                            possibility_tree.pop(i)
+                                            deleted = True
+                                        else:
+                                            deleted = False
+                                    except IndexError:
+                                        deleted = False
+                            you_prob = 0.0
+                            dealer_prob = 0.0
+                            none_prob = 0.0
+                            full_prob = 0.0
+                            for i in range(len(possibility_tree)):
+                                full_prob += possibility_tree[i][1]
+
+                            for i in range(len(possibility_tree)):
+                                if possibility_tree[i][0][-1] == "full_end_dealer_win":
+                                    dealer_prob += (possibility_tree[i][1] * (1 / full_prob))
+                                elif possibility_tree[i][0][-1] == "full_end_player_win":
+                                    you_prob += (possibility_tree[i][1] * (1 / full_prob))
+                                elif possibility_tree[i][0][-1] == "full_end_no_win":
+                                    none_prob += (possibility_tree[i][1] * (1 / full_prob))
+
+                            action_window.update_window("SR_dealer_adrenaline_beer", you_prob, dealer_prob, none_prob)
+                            result = action_window.wait_for_result()
+                            if not result:
+                                return
+                    elif 'dealer_saw' in live_think_acts or 'dealer_adrenaline_saw' in live_think_acts:
+                        result = ''
+                        if not action_window:
+                            action_window = ActionWindow(self, "HR_dealer_saw" if not 'dealer_adrenaline_saw' in live_think_acts else "HR_dealer_adrenaline_saw", you_prob, dealer_prob, none_prob)
+                        else:
+                            action_window.update_window("HR_dealer_saw" if not 'dealer_adrenaline_saw' in live_think_acts else "HR_dealer_adrenaline_saw", you_prob, dealer_prob, none_prob)
+                        result = action_window.wait_for_result()
+                        if not result:
+                            return
+                        result = 'Yes' if result == 'No' else 'No'
+                        print(result)
+                        if result == 'No':
+                            ti_increase = 2
+                        else:
+                            ti_increase = 1
+                    else:
+                        turn_index += 1
+                        continue
+                    if result == 'Yes':
+                        for i in range(len(possibility_tree)):
+                            deleted = True
+                            while deleted:
+                                try:
+                                    if 'dealer_think_live' in possibility_tree[i][0][turn_index]:
+                                        possibility_tree.pop(i)
+                                        deleted = True
+                                    else:
+                                        deleted = False
+                                except IndexError:
+                                    deleted = False
+                    elif result == 'No':
+                        for i in range(len(possibility_tree)):
+                            deleted = True
+                            while deleted:
+                                try:
+                                    if 'dealer_think_blank' in possibility_tree[i][0][turn_index]:
+                                        possibility_tree.pop(i)
+                                        deleted = True
+                                    else:
+                                        deleted = False
+                                except IndexError:
+                                    deleted = False
+                    elif result == 'Live':
+                        for i in range(len(possibility_tree)):
+                            deleted = True
+                            while deleted:
+                                try:
+                                    if '_blank' in possibility_tree[i][0][turn_index + 1]:
+                                        possibility_tree.pop(i)
+                                        deleted = True
+                                    else:
+                                        deleted = False
+                                except IndexError:
+                                    deleted = False
+                    elif result == 'Blank':
+                        for i in range(len(possibility_tree)):
+                            deleted = True
+                            while deleted:
+                                try:
+                                    if '_live' in possibility_tree[i][0][turn_index + 1]:
+                                        possibility_tree.pop(i)
+                                        deleted = True
+                                    else:
+                                        deleted = False
+                                except IndexError:
+                                    deleted = False
+                    print(possibility_tree)
+                    turn_index += ti_increase
+                    continue
             else:
                 actual_action = actions[0]
 
-            you_prob = 0.0
-            dealer_prob = 0.0
-            none_prob = 0.0
-            full_prob = 0.0
-            for i in range(len(possibility_tree)):
-                full_prob += possibility_tree[i][1]
+            if 'dealer_think' in actual_action:
+                turn_index += 1
+                continue
 
-            for i in range(len(possibility_tree)):
-                if possibility_tree[i][0][-1] == "full_end_dealer_win":
-                    dealer_prob += (possibility_tree[i][1] * (1 / full_prob))
-                elif possibility_tree[i][0][-1] == "full_end_player_win":
-                    you_prob += (possibility_tree[i][1] * (1 / full_prob))
-                elif possibility_tree[i][0][-1] == "full_end_no_win":
-                    none_prob += (possibility_tree[i][1] * (1 / full_prob))
-
-            global result
             result = ''
             if not action_window:
                 action_window = ActionWindow(self, actual_action, you_prob, dealer_prob, none_prob)
@@ -638,6 +890,9 @@ class UIApp(tk.Tk):
         if possibility_tree[0][0][-1] == "full_end_player_win":
             for i in range(len(possibility_tree[0][0]) - turn_index - 1):
                 result = ''
+                if 'dealer_think' in possibility_tree[0][0][turn_index]:
+                    turn_index += 1
+                    continue
                 action_window.update_window(possibility_tree[0][0][turn_index], 1.0, 0.0, 0.0)
                 result = action_window.wait_for_result()
                 if not result:
@@ -653,6 +908,9 @@ class UIApp(tk.Tk):
         elif possibility_tree[0][0][-1] == "full_end_no_win":
             for i in range(len(possibility_tree[0][0]) - turn_index - 1):
                 result = ''
+                if 'dealer_think' in possibility_tree[0][0][turn_index]:
+                    turn_index += 1
+                    continue
                 action_window.update_window(possibility_tree[0][0][turn_index], 0.0, 0.0, 1.0)
                 result = action_window.wait_for_result()
                 if not result:
@@ -684,7 +942,7 @@ class UIApp(tk.Tk):
         maximum_hp = max_hp
 
         result = eval(you_items,dealer_items,live,blank,dealer_hp,you_hp,["full_start"],1.0, None, 'you')
-        return result
+        return 'completed'
 
 
 
@@ -692,18 +950,18 @@ class UIApp(tk.Tk):
 
 def eval(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, turn, force_dismiss_search = False, cuffed = None, prev_cuffed = None):
     if any("full_end_dealer_win" in item for item in path) or any("full_end_player_win" in item for item in path):
-        if dealer_hp == 0 or you_hp == 0:
+        if dealer_hp <= 0 or you_hp <= 0:
             return [path, randomness, you_hp, dealer_hp]
         else:
             return None
     if any("full_end_no_win" in item for item in path):
         return [path, randomness, you_hp, dealer_hp]
 
-    if dealer_hp == 0:
+    if dealer_hp <= 0:
         path.append("full_end_player_win")
         possibility_tree.append([path, randomness, you_hp, dealer_hp])
         return [path, randomness, you_hp, dealer_hp]
-    if you_hp == 0:
+    if you_hp <= 0:
         path.append("full_end_dealer_win")
         possibility_tree.append([path, randomness, you_hp, dealer_hp])
         return [path, randomness, you_hp, dealer_hp]
@@ -774,7 +1032,7 @@ def eval(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomne
 
 
 
-def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, action, turn, live_odds, potential_damage = 1, whose = 'turn', cuffed = None, prev_cuffed = None):
+def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, action, turn, live_odds, potential_damage = 1, whose = 'turn', cuffed = None, prev_cuffed = None, inverted = False):
     global possibility_tree
     live_randomness = randomness * live_odds
     blank_randomness = randomness * (1 - live_odds)
@@ -786,6 +1044,17 @@ def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomn
         op_ptree = deepcopy(possibility_tree)
         possibility_tree = []
         self_eval = sim_dealer_action(stored_you_items.copy(), stored_dealer_items.copy(), live, blank, dealer_hp, you_hp, stored_path.copy(), randomness * 0.5, 'self', cuffed, prev_cuffed)
+        self_ptree = deepcopy(possibility_tree)
+        possibility_tree = op_ptree + self_ptree
+        return [self_eval, op_eval]
+    elif action == 'dealer_shoot_choice_with_certainty':
+        stored_path = path.copy()
+        stored_you_items = you_items.copy()
+        stored_dealer_items = dealer_items.copy()
+        op_eval = sim_dealer_action(stored_you_items.copy(), stored_dealer_items.copy(), live, blank, dealer_hp, you_hp, stored_path.copy(), randomness * 0.5,'opponent', cuffed, prev_cuffed, False, 'live')
+        op_ptree = deepcopy(possibility_tree)
+        possibility_tree = []
+        self_eval = sim_dealer_action(stored_you_items.copy(), stored_dealer_items.copy(), live, blank, dealer_hp, you_hp, stored_path.copy(), randomness * 0.5, 'self', cuffed, prev_cuffed, False, 'blank')
         self_ptree = deepcopy(possibility_tree)
         possibility_tree = op_ptree + self_ptree
         return [self_eval, op_eval]
@@ -1118,18 +1387,14 @@ def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomn
             stored_path = path.copy()
             stored_you_items = you_items.copy()
             stored_dealer_items = dealer_items.copy()
-            if "Hand Saw" in stored_dealer_items:
-                stored_path.append("dealer_saw")
-                stored_dealer_items.remove("Hand Saw")
-                potential_damage = 2
             live_path = stored_path.copy()
             live_path.append("dealer_shoot_op_live")
-            live_eval = eval(stored_you_items.copy(), stored_dealer_items.copy(), live - 1, blank, dealer_hp, you_hp - potential_damage, live_path.copy(), live_randomness, None,'you' if cuffed != 'you' else 'dealer', False, None, cuffed)
+            live_eval = eval(stored_you_items.copy(), stored_dealer_items.copy(), (live - 1) if not inverted else live, blank if not inverted else (blank - 1), dealer_hp, you_hp - potential_damage, live_path.copy(), live_randomness, None, 'you' if cuffed != 'you' else 'dealer', False, None, cuffed)
             live_ptree = deepcopy(possibility_tree)
             possibility_tree = []
             blank_path = stored_path.copy()
             blank_path.append("dealer_shoot_op_blank")
-            blank_eval = eval(stored_you_items.copy(), stored_dealer_items.copy(), live, blank - 1, dealer_hp, you_hp, blank_path.copy(), blank_randomness, None,'you' if cuffed != 'you' else 'dealer', False, None, cuffed)
+            blank_eval = eval(stored_you_items.copy(), stored_dealer_items.copy(), live if not inverted else (live - 1), (blank - 1) if not inverted else blank, dealer_hp, you_hp, blank_path.copy(), blank_randomness, None,'you' if cuffed != 'you' else 'dealer', False, None, cuffed)
             blank_ptree = deepcopy(possibility_tree)
             possibility_tree = live_ptree + blank_ptree
             return [live_eval, blank_eval]
@@ -1150,20 +1415,20 @@ def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomn
             return [live_eval, blank_eval]
 
 
-def sim_dealer_action(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, choice = None, cuffed = None, prev_cuffed = None):
+def sim_dealer_action(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, choice = None, cuffed = None, prev_cuffed = None, inverted = False, guarantee = None):
     if any("full_end_dealer_win" in item for item in path) or any("full_end_player_win" in item for item in path):
-        if dealer_hp == 0 or you_hp == 0:
+        if dealer_hp <= 0 or you_hp <= 0:
             return [path, randomness, you_hp, dealer_hp]
         else:
             return None
     if any("full_end_no_win" in item for item in path):
         return [path, randomness, you_hp, dealer_hp]
 
-    if dealer_hp == 0:
+    if dealer_hp <= 0:
         path.append("full_end_player_win")
         possibility_tree.append([path, randomness, you_hp, dealer_hp])
         return [path, randomness, you_hp, dealer_hp]
-    elif you_hp == 0:
+    elif you_hp <= 0:
         path.append("full_end_dealer_win")
         possibility_tree.append([path, randomness, you_hp, dealer_hp])
         return [path, randomness, you_hp, dealer_hp]
@@ -1175,16 +1440,9 @@ def sim_dealer_action(you_items, dealer_items, live, blank, dealer_hp, you_hp, p
 
     live_chance = live / (live + blank)
     blank_chance = blank / (live + blank)
-    is_live_guaranteed = live_chance == 1.0
-    is_blank_guaranteed = blank_chance == 1.0
+    is_live_guaranteed = (live_chance == 1.0) or guarantee == 'live'
+    is_blank_guaranteed = (blank_chance == 1.0) or guarantee == 'blank'
 
-    if "Handcuffs" in dealer_items and not prev_cuffed == 'you' and not cuffed == 'you':
-        new_dealer_items = dealer_items.copy()
-        new_dealer_items.remove("Handcuffs")
-        new_path = path.copy()
-        new_path.append("dealer_cuff")
-        sim_dealer_action(you_items, new_dealer_items.copy(), live, blank, dealer_hp, you_hp, new_path.copy(), randomness, choice, 'you', None)
-        return
 
     if "Cigarette Pack" in dealer_items and dealer_hp < maximum_hp:
         new_dealer_items = dealer_items.copy()
@@ -1193,28 +1451,116 @@ def sim_dealer_action(you_items, dealer_items, live, blank, dealer_hp, you_hp, p
         new_path.append("dealer_cig")
         sim_dealer_action(you_items, new_dealer_items.copy(), live, blank, dealer_hp+1, you_hp, new_path.copy(),randomness, choice, cuffed, prev_cuffed)
         return
+    elif "Cigarette Pack" in you_items and "Adrenaline" in dealer_items and dealer_hp < maximum_hp:
+        new_dealer_items = dealer_items.copy()
+        new_dealer_items.remove("Adrenaline")
+        new_you_items = you_items.copy()
+        new_you_items.remove("Cigarette Pack")
+        new_path = path.copy()
+        new_path.append("dealer_adrenaline_cig")
+        sim_dealer_action(new_you_items.copy(), new_dealer_items.copy(), live, blank, dealer_hp+1, you_hp, new_path.copy(),randomness, choice, cuffed, prev_cuffed)
+        return
 
-    if is_live_guaranteed:
+
+    if "Expired Medicine" in dealer_items and dealer_hp + 1 < maximum_hp and dealer_hp != 1:
+        split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, "exp", "dealer", live / (live + blank), 1, 'turn', cuffed, prev_cuffed)
+        return
+    elif "Expired Medicine" in you_items and "Adrenaline" in dealer_items and dealer_hp + 1 < maximum_hp and dealer_hp != 1:
+        split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, "exp", "dealer", live / (live + blank), 1, 'other', cuffed, prev_cuffed)
+        return
+
+    if "Magnifying Glass" in dealer_items and not is_blank_guaranteed and not is_live_guaranteed and not choice:
+        new_dealer_items = dealer_items.copy()
+        new_dealer_items.remove("Magnifying Glass")
+        new_path = path.copy()
+        new_path.append("dealer_glass")
+        split(you_items, new_dealer_items.copy(), live, blank, dealer_hp, you_hp, new_path.copy(), randomness, 'dealer_shoot_choice_with_certainty','dealer', live_chance, 1, 'turn', cuffed, prev_cuffed)
+        return
+    elif "Magnifying Glass" in you_items and "Adrenaline" in dealer_items and not is_blank_guaranteed and not is_live_guaranteed and not choice:
+        new_dealer_items = dealer_items.copy()
+        new_dealer_items.remove("Adrenaline")
+        new_you_items = you_items.copy()
+        new_you_items.remove("Magnifying Glass")
+        new_path = path.copy()
+        new_path.append("dealer_adrenaline_glass")
+        split(you_items, new_dealer_items.copy(), live, blank, dealer_hp, you_hp, new_path.copy(), randomness, 'dealer_shoot_choice_with_certainty','dealer', live_chance, 1, 'turn', cuffed, prev_cuffed)
+        return
+
+    if "Handcuffs" in dealer_items and not prev_cuffed == 'you' and not cuffed == 'you':
+        new_dealer_items = dealer_items.copy()
+        new_dealer_items.remove("Handcuffs")
+        new_path = path.copy()
+        new_path.append("dealer_cuff")
+        sim_dealer_action(you_items, new_dealer_items.copy(), live, blank, dealer_hp, you_hp, new_path.copy(), randomness, choice, 'you', None)
+        return
+    elif "Handcuffs" in you_items and "Adrenaline" in dealer_items and not prev_cuffed == 'you' and not cuffed == 'you':
+        new_dealer_items = dealer_items.copy()
+        new_dealer_items.remove("Adrenaline")
+        new_you_items = you_items.copy()
+        new_you_items.remove("Handcuffs")
+        new_path = path.copy()
+        new_path.append("dealer_adrenaline_cuff")
+        sim_dealer_action(you_items, new_dealer_items.copy(), live, blank, dealer_hp, you_hp, new_path.copy(), randomness, choice, 'you', None)
+        return
+
+    if not is_blank_guaranteed and not is_live_guaranteed and not choice:
+        split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness,'dealer_shoot_choice', 'dealer', live_chance, 1, 'turn', cuffed, prev_cuffed)
+        return
+
+    if choice == "opponent" or is_live_guaranteed:
+        path.append("dealer_think_live")
         if "Hand Saw" in dealer_items:
-            potential_damage = 2
             dealer_items.remove("Hand Saw")
             path.append("dealer_saw")
+            potential_damage = 2
+            if guarantee == 'live':
+                is_live_guaranteed = True
+        elif "Adrenaline" in dealer_items and "Hand Saw" in you_items:
+            dealer_items.remove("Adrenaline")
+            you_items.remove("Hand Saw")
+            path.append("dealer_adrenaline_saw")
+            potential_damage = 2
+            if guarantee == 'live':
+                is_live_guaranteed = True
         else:
             potential_damage = 1
-        path.append("dealer_shoot_op_live")
-        result = eval(you_items, dealer_items, live - 1, blank, dealer_hp, you_hp - potential_damage, path, randomness, None, 'you' if cuffed != 'you' else 'dealer', None, None, cuffed)
-        return result
-    elif not is_blank_guaranteed and not choice:
-        result = split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, 'dealer_shoot_choice', 'dealer', live_chance, 1, 'turn', cuffed, prev_cuffed)
-        return result
-    elif not is_blank_guaranteed:
-        result = split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, choice, 'dealer', live_chance, 1, 'turn', cuffed, prev_cuffed)
-        return result
-    elif is_blank_guaranteed:
-        path.append("dealer_shoot_self_blank")
-        result = eval(you_items, dealer_items, live, blank - 1, dealer_hp, you_hp, path, randomness, None, 'dealer', False, cuffed, prev_cuffed)
-        return result
-
+        if not is_live_guaranteed:
+            split(you_items,dealer_items,live,blank,dealer_hp,you_hp,path,randomness,'opponent','dealer',live_chance, potential_damage, 'turn', cuffed, prev_cuffed, inverted)
+            return
+        else:
+            path.append("dealer_shoot_op_live")
+            eval(you_items,dealer_items,live - 1,blank,dealer_hp,you_hp - potential_damage,path,randomness,None,'you' if cuffed != 'you' else 'dealer',False,None,cuffed)
+            return
+    elif choice == "self" or is_blank_guaranteed:
+        path.append("dealer_think_blank")
+        if "Inverter" in dealer_items:
+            new_dealer_items = dealer_items.copy()
+            new_dealer_items.remove("Inverter")
+            new_path = path.copy()
+            new_path.append("dealer_invert")
+            sim_dealer_action(you_items, new_dealer_items.copy(), live if not is_blank_guaranteed else (live + 1), blank if not is_blank_guaranteed else (blank - 1), dealer_hp, you_hp,new_path.copy(), randomness, 'opponent', cuffed, prev_cuffed, True, 'live' if guarantee == 'blank' else None)
+            return
+        elif "Inverter" in you_items and "Adrenaline" in dealer_items:
+            new_dealer_items = dealer_items.copy()
+            new_dealer_items.remove("Adrenaline")
+            new_you_items = you_items.copy()
+            new_you_items.remove("Inverter")
+            new_path = path.copy()
+            new_path.append("dealer_adrenaline_invert")
+            sim_dealer_action(new_you_items.copy(), new_dealer_items.copy(), live if not is_blank_guaranteed else (live + 1), blank if not is_blank_guaranteed else (blank - 1), dealer_hp, you_hp,new_path.copy(), randomness, 'opponent', cuffed, prev_cuffed, True, 'live' if guarantee == 'blank' else None)
+            return
+        elif "Beer" in dealer_items:
+            split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, "beer", "dealer", live / (live + blank), 1, 'turn', cuffed, prev_cuffed)
+            return
+        elif "Beer" in you_items and "Adrenaline" in dealer_items:
+            split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, "beer", "dealer", live / (live + blank), 1, 'other', cuffed, prev_cuffed)
+            return
+        if not is_blank_guaranteed:
+            split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, 'self', 'dealer',live_chance, 1, 'turn', cuffed, prev_cuffed, inverted)
+        else:
+            path.append("dealer_shoot_self_blank")
+            eval(you_items,dealer_items,live,blank-1,dealer_hp,you_hp,path,randomness,None,'dealer',False,cuffed, prev_cuffed)
+        return
     path.append("dealer_sim_here")
     return [path, randomness, you_hp, dealer_hp]
 
@@ -1327,6 +1673,9 @@ def search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, random
     for i in range(len(alpha_ptree)):
         a_full_prob += alpha_ptree[i][1]
 
+    if a_full_prob == 0.0:
+        a_full_prob = 1.0
+
     a_d_prob = 0.0
     a_y_prob = 0.0
     a_n_prob = 0.0
@@ -1341,6 +1690,9 @@ def search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, random
     b_full_prob = 0.0
     for i in range(len(beta_ptree)):
         b_full_prob += beta_ptree[i][1]
+
+    if b_full_prob == 0.0:
+        b_full_prob = 1.0
 
     b_d_prob = 0.0
     b_y_prob = 0.0
@@ -1360,10 +1712,12 @@ def search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, random
     else:
         alpha_rating = 0
         for i in range(len(alpha_ptree)):
-            alpha_rating += (alpha_ptree[i][2] - alpha_ptree[i][3]) / (alpha_ptree[i][1] * (1/ a_full_prob))
+            if (alpha_ptree[i][1] * (1/ a_full_prob)) != 0.0:
+                alpha_rating += (alpha_ptree[i][2] - alpha_ptree[i][3]) / (alpha_ptree[i][1] * (1/ a_full_prob))
         beta_rating = 0
         for i in range(len(beta_ptree)):
-            beta_rating += (beta_ptree[i][2] - beta_ptree[i][3]) / (beta_ptree[i][1] * (1/ b_full_prob))
+            if (beta_ptree[i][1] * (1/ b_full_prob)) != 0.0:
+                beta_rating += (beta_ptree[i][2] - beta_ptree[i][3]) / (beta_ptree[i][1] * (1/ b_full_prob))
         if alpha_rating > beta_rating and not isclose(alpha_rating, beta_rating, rel_tol=1e-12, abs_tol=0.0):
             possibility_tree = starting_ptree + alpha_ptree
         else:
@@ -1509,10 +1863,12 @@ def adrenaline(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, ra
     else:
         a_alpha_rating = 0
         for i in range(len(a_alpha_ptree)):
-            a_alpha_rating += (a_alpha_ptree[i][2] - a_alpha_ptree[i][3]) / (a_alpha_ptree[i][1] * (1/ a_a_full_prob))
+            if (a_alpha_ptree[i][1] * (1/ a_a_full_prob)) != 0.0:
+                a_alpha_rating += (a_alpha_ptree[i][2] - a_alpha_ptree[i][3]) / (a_alpha_ptree[i][1] * (1/ a_a_full_prob))
         a_beta_rating = 0
         for i in range(len(a_beta_ptree)):
-            a_beta_rating += (a_beta_ptree[i][2] - a_beta_ptree[i][3]) / (a_beta_ptree[i][1] * (1/ a_b_full_prob))
+            if (a_beta_ptree[i][1] * (1/ a_b_full_prob)) != 0.0:
+                a_beta_rating += (a_beta_ptree[i][2] - a_beta_ptree[i][3]) / (a_beta_ptree[i][1] * (1/ a_b_full_prob))
         if a_alpha_rating > a_beta_rating and not isclose(a_alpha_rating, a_beta_rating, rel_tol=1e-12, abs_tol=0.0):
             possibility_tree = a_starting_ptree + a_alpha_ptree
         else:
