@@ -4,7 +4,6 @@ from copy import deepcopy
 from math import isclose
 import threading
 import ctypes
-from numba import jit, cuda
 
 possibility_tree = []
 result = ''
