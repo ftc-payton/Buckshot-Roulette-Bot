@@ -121,7 +121,9 @@ class ActionWindow(tk.Toplevel):
             "SR_dealer_adrenaline_beer": "Which shell did the dealer eject?",
             "HR_dealer_adrenaline_beer": "Did the dealer use adrenaline to steal your beer?",
             "SR_PR_you_phone": "Use the burner phone.",
-            "dealer_phone": "The dealer will use the burner phone."
+            "dealer_phone": "The dealer will use the burner phone.",
+            "dealer_shoot_self_live": "The dealer will shoot itself with a guaranteed live round.",
+            "dealer_shoot_op_blank": "The dealer will shoot you with a guaranteed blank round."
         }
 
         prob_text_frame = tk.Frame(self)
