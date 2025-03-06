@@ -648,7 +648,7 @@ class UIApp(tk.Tk):
                     elif action_common_you_invert:
                         actual_action = "you_invert_uk"
                     elif action_common_you_adrenaline_invert:
-                        actual_action = "you_invert_uk"
+                        actual_action = "you_adrenaline_invert_uk"
                     elif action_common_you_exp:
                         actual_action = "MR_you_exp"
                     elif action_common_you_adrenaline_exp:
@@ -1109,8 +1109,8 @@ def eval(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomne
         blank_chance = (blank - 1) / (live + blank - 1)
 
     is_live_likely = live_chance > blank_chance
-    is_live_guaranteed = (live_chance == 1.0 or guarantee == 'live' or (phoned[1] == 'Live' and phoned[0] == 1)) and not 'likely_blank' in path[-1]
-    is_blank_guaranteed = (blank_chance == 1.0 or guarantee == 'blank' or (phoned[1] == 'Blank' and phoned[0] == 1)) and not 'likely_live' in path[-1]
+    is_live_guaranteed = (live_chance == 1.0 or guarantee == 'live' or (phoned[1] == 'Live' and phoned[0] == 1)) and not 'likely_live' in path[-1]
+    is_blank_guaranteed = (blank_chance == 1.0 or guarantee == 'blank' or (phoned[1] == 'Blank' and phoned[0] == 1)) and not 'likely_blank' in path[-1]
     is_blank_likely = blank_chance < live_chance
     equally_likely = live_chance == blank_chance
 
@@ -1152,7 +1152,7 @@ def eval(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomne
         result = eval(you_items, dealer_items, live, blank - 1, dealer_hp, you_hp, path, randomness, None, 'you', False, cuffed, prev_cuffed, [phoned[0] - 1, phoned[1]])
         return result
 
-    if (live_chance >= blank_chance or 'likely_live' in path[-1]) and not 'likely_blank' in path[-1]:
+    if (live_chance >= blank_chance or 'likely_blank' in path[-1]) and not 'likely_live' in path[-1]:
         result = split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, 'opponent', 'you', live_chance, potential_damage, 'turn', cuffed, prev_cuffed, False, phoned)
         return result
     else:
@@ -1165,6 +1165,21 @@ def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomn
     global possibility_tree
     live_randomness = randomness * live_odds
     blank_randomness = randomness * (1 - live_odds)
+
+    if not phoned[1] or phoned[0] <= 0:
+        live_chance = live / (live + blank)
+        blank_chance =  blank / (live + blank)
+    elif phoned[0] == 1:
+        live_chance = 1.0 if phoned[1] == 'Live' else 0.0
+        blank_chance = 1.0 if phoned[1] == 'Blank' else 0.0
+    elif phoned[1] == 'Live':
+        live_chance = (live - 1) / (live - 1 + blank)
+        blank_chance = (blank) / (live - 1 + blank)
+    elif phoned[1] == 'Blank':
+        live_chance = (live) / (live + blank - 1)
+        blank_chance = (blank - 1) / (live + blank - 1)
+
+
     if action == 'dealer_shoot_choice':
         stored_path = path.copy()
         stored_you_items = you_items.copy()
@@ -1359,7 +1374,7 @@ def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomn
                 new_you_items = you_items.copy()
                 new_you_items.remove("Adrenaline")
                 live_path = stored_path.copy()
-                if live / (live + blank) >= blank / (live + blank):
+                if live_chance >= blank_chance:
                     live_path.append("you_adrenaline_invert_live_likely_live")
                 else:
                     live_path.append("you_adrenaline_invert_live_likely_blank")
@@ -1367,7 +1382,7 @@ def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomn
                 live_ptree = deepcopy(possibility_tree)
                 possibility_tree = []
                 blank_path = stored_path.copy()
-                if live / (live + blank) >= blank / (live + blank):
+                if live_chance >= blank_chance:
                     blank_path.append("you_adrenaline_invert_blank_likely_live")
                 else:
                     blank_path.append("you_adrenaline_invert_blank_likely_blank")
@@ -1732,6 +1747,12 @@ def search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, random
     elif phoned[1] == 'Blank':
         live_chance = (live) / (live + blank - 1)
         blank_chance = (blank - 1) / (live + blank - 1)
+
+    if not guarantee:
+        if live_chance == 1.0:
+            guarantee = 'live'
+        elif blank_chance == 1.0:
+            guarantee = 'blank'
 
     if "Handcuffs" in you_items and not "cuffs" in passed and not prev_cuffed == 'dealer' and not cuffed == 'dealer':
         new_you_items = you_items.copy()
