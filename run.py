@@ -499,6 +499,42 @@ class UIApp(tk.Tk):
         self.calc_label = tk.Label(right_inner, text="", fg="black", bg="lightgray")
         self.calc_label.pack()
 
+        self.reset_btn = tk.Button(right_inner, text="Reset", command=self.reset_app)
+        self.reset_btn.pack()
+
+    def destroy_item_by_name(self, item_name, side):
+        for target in self.drop_targets:
+            if target.side == side:
+                for item in target.items:
+                    if item.name == item_name:
+                        self.canvas.delete(item.rect)
+                        self.canvas.delete(item.text)
+                        target.items.remove(item)
+                        if item in self.draggable_items:
+                            self.draggable_items.remove(item)
+                        return True
+        return False
+
+    def remove_you_item(self, item_name):
+        return self.destroy_item_by_name(item_name, side="you")
+
+    def remove_dealer_item(self, item_name):
+        return self.destroy_item_by_name(item_name, side="dealer")
+
+    def reset_app(self):
+        self.live_count_control.set_value(0)
+        self.blank_count_control.set_value(0)
+        self.max_hp_control.set_value(1)
+        self.dealer_hp_control.set_value(1)
+        self.you_hp_control.set_value(1)
+
+        for item in self.draggable_items:
+            self.canvas.delete(item.rect)
+            self.canvas.delete(item.text)
+        self.draggable_items.clear()
+        for dt in self.drop_targets:
+            dt.items.clear()
+
     def disable_controls(self):
         for control in [self.live_count_control, self.blank_count_control,
                         self.max_hp_control, self.dealer_hp_control, self.you_hp_control]:
@@ -508,6 +544,7 @@ class UIApp(tk.Tk):
             item.lock()
         for btn in self.item_buttons:
             btn.config(state="disabled")
+        self.reset_btn.config(state="disabled")
 
     def enable_controls(self):
         for control in [self.live_count_control, self.blank_count_control,
@@ -518,6 +555,7 @@ class UIApp(tk.Tk):
             item.unlock()
         for btn in self.item_buttons:
             btn.config(state="normal")
+        self.reset_btn.config(state="normal")
 
     def run_go(self):
         if self.eval_thread is None or not self.eval_thread.is_alive():
@@ -581,6 +619,10 @@ class UIApp(tk.Tk):
             game_not_resolved = True
             turn_index = 1
             action_window = None
+            you_sawed = False
+            dealer_sawed = False
+            you_inverted = False
+            dealer_inverted = False
             while game_not_resolved:
                 you_prob = 0.0
                 dealer_prob = 0.0
@@ -695,6 +737,8 @@ class UIApp(tk.Tk):
                                 ti_increase = 1
                             else:
                                 ti_increase = 3
+                                self.remove_dealer_item("Inverter")
+                                dealer_inverted = True
                             print(result)
                         elif 'dealer_adrenaline_invert' in blank_think_acts:
                             result = ''
@@ -709,6 +753,9 @@ class UIApp(tk.Tk):
                                 ti_increase = 1
                             else:
                                 ti_increase = 3
+                                self.remove_dealer_item("Adrenaline")
+                                self.remove_you_item("Inverter")
+                                dealer_inverted = True
                             print(result)
                         elif 'dealer_beer_live' in blank_think_acts or 'dealer_beer_blank' in blank_think_acts:
                             result = ''
@@ -723,6 +770,7 @@ class UIApp(tk.Tk):
                                 ti_increase = 1
                             else:
                                 ti_increase = 2
+                                self.remove_dealer_item("Beer")
                             print(result)
                             if result == 'Yes':
                                 for i in range(len(possibility_tree)):
@@ -755,6 +803,10 @@ class UIApp(tk.Tk):
                                 result = action_window.wait_for_result()
                                 if not result or not action_window.winfo_exists():
                                     raise KeyboardInterrupt()
+                                if result == 'Live':
+                                    self.live_count_control.value -= 1
+                                else:
+                                    self.blank_count_control.value -= 1
                         elif 'dealer_adrenaline_beer_live' in blank_think_acts or 'dealer_adrenaline_beer_blank' in blank_think_acts:
                             result = ''
                             if not action_window:
@@ -768,6 +820,9 @@ class UIApp(tk.Tk):
                                 ti_increase = 1
                             else:
                                 ti_increase = 2
+                                self.remove_dealer_item("Adrenaline")
+                                self.remove_you_item("Beer")
+
                             print(result)
                             if result == 'Yes':
                                 for i in range(len(possibility_tree)):
@@ -800,6 +855,10 @@ class UIApp(tk.Tk):
                                 result = action_window.wait_for_result()
                                 if not result or not action_window.winfo_exists():
                                     raise KeyboardInterrupt()
+                                if result == 'Live':
+                                    self.live_count_control.value -= 1
+                                else:
+                                    self.blank_count_control.value -= 1
                         elif 'dealer_saw' in live_think_acts or 'dealer_adrenaline_saw' in live_think_acts:
                             result = ''
                             if not action_window:
@@ -813,6 +872,10 @@ class UIApp(tk.Tk):
                             print(result)
                             if result == 'No':
                                 ti_increase = 2
+                                dealer_sawed = True
+                                self.remove_dealer_item("Hand Saw" if "dealer_saw" in live_think_acts else "Adrenaline")
+                                if "dealer_adrenaline_saw" in live_think_acts:
+                                    self.remove_you_item("Hand Saw")
                             else:
                                 ti_increase = 1
                         else:
@@ -982,6 +1045,92 @@ class UIApp(tk.Tk):
                                     deleted = False
                             except IndexError:
                                 deleted = False
+
+                final_action = possibility_tree[0][0][turn_index]
+                if 'you_saw' in final_action:
+                    self.remove_you_item("Hand Saw")
+                    you_sawed = True
+                elif 'you_adrenaline_saw' in final_action:
+                    self.remove_dealer_item("Hand Saw")
+                    self.remove_you_item("Adrenaline")
+                    you_sawed = True
+                elif 'you_invert' in final_action:
+                    self.remove_you_item("Inverter")
+                    you_inverted = True
+                elif 'you_adrenaline_invert' in final_action:
+                    self.remove_you_item("Adrenaline")
+                    self.remove_dealer_item("Inverter")
+                    you_inverted = True
+                elif 'you_beer' in final_action:
+                    self.remove_you_item("Beer")
+                elif 'you_adrenaline_beer' in final_action:
+                    self.remove_you_item("Adrenaline")
+                    self.remove_dealer_item("Beer")
+                elif 'you_glass' in final_action:
+                    self.remove_you_item("Magnifying Glass")
+                elif 'you_adrenaline_glass' in final_action:
+                    self.remove_you_item("Adrenaline")
+                    self.remove_dealer_item("Magnifying Glass")
+                elif 'you_cig' in final_action:
+                    self.remove_you_item("Cigarettes")
+                    self.you_hp_control.value += 1
+                elif 'you_adrenaline_cig' in final_action:
+                    self.remove_you_item("Adrenaline")
+                    self.remove_dealer_item("Cigarettes")
+                    self.you_hp_control.value += 1
+                elif 'you_exp' in final_action:
+                    if 'hit' in final_action:
+                        self.you_hp_control.value += 1
+                    elif 'miss' in final_action:
+                        self.you_hp_control.decrement()
+                        self.you_hp_control.decrement()
+                    self.remove_you_item("Expired Medicine")
+                elif 'you_adrenaline_exp' in final_action:
+                    if 'hit' in final_action:
+                        self.you_hp_control.value += 1
+                    elif 'miss' in final_action:
+                        self.you_hp_control.decrement()
+                        self.you_hp_control.decrement()
+                    self.remove_you_item("Adrenaline")
+                    self.remove_dealer_item("Expired Medicine")
+                elif 'you_cuff' in final_action:
+                    self.remove_you_item("Handcuffs")
+                elif 'you_adrenaline_cuff' in final_action:
+                    self.remove_you_item("Adrenaline")
+                    self.remove_dealer_item("Handcuffs")
+                elif 'you_shoot_self_live' in final_action:
+                    self.you_hp_control.decrement()
+                elif 'you_shoot_op_live' in final_action:
+                    self.dealer_hp_control.decrement()
+                    if you_sawed:
+                        self.dealer_hp_control.decrement()
+                        you_sawed = False
+                elif 'you_shoot_op_blank' in final_action:
+                    you_sawed = False
+                elif 'dealer_shoot_self_live' in final_action:
+                    self.dealer_hp_control.decrement()
+                elif 'dealer_shoot_op_live' in final_action:
+                    self.you_hp_control.decrement()
+                    if dealer_sawed:
+                        self.you_hp_control.decrement()
+                        dealer_sawed = False
+                elif 'dealer_shoot_op_blank' in final_action:
+                    dealer_sawed = False
+
+                if 'live' in final_action and not 'invert' in final_action:
+                    if you_inverted or dealer_inverted:
+                        self.blank_count_control.decrement()
+                        you_inverted = False
+                        dealer_inverted = False
+                    else:
+                        self.live_count_control.decrement()
+                elif 'blank' in final_action and not 'invert' in final_action:
+                    if you_inverted or dealer_inverted:
+                        self.live_count_control.decrement()
+                        you_inverted = False
+                        dealer_inverted = False
+                    else:
+                        self.blank_count_control.decrement()
 
                 print(possibility_tree)
                 if not 'CR' in actual_action and not (dealer_potential_saw and result == "No" and not action_common_dealer_saw):

@@ -6,6 +6,5 @@ build/
 dist/
 run.spec
 
-# py2app files
-setup.py
-App.entitlements
+# macos specific build script
+build.sh
