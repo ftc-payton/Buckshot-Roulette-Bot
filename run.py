@@ -391,6 +391,8 @@ class UIApp(tk.Tk):
         self.create_left_panel()
         self.create_right_panel()
 
+        self.focus_force()
+
 
     def create_table(self):
         table_x0, table_y0, table_x1, table_y1 = 150, 150, 550, 550
