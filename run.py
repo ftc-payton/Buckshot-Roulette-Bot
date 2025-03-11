@@ -623,6 +623,7 @@ class UIApp(tk.Tk):
             dealer_sawed = False
             you_inverted = False
             dealer_inverted = False
+            global maximum_hp
             while game_not_resolved:
                 you_prob = 0.0
                 dealer_prob = 0.0
@@ -804,9 +805,9 @@ class UIApp(tk.Tk):
                                 if not result or not action_window.winfo_exists():
                                     raise KeyboardInterrupt()
                                 if result == 'Live':
-                                    self.live_count_control.value -= 1
+                                    self.live_count_control.decrement()
                                 else:
-                                    self.blank_count_control.value -= 1
+                                    self.blank_count_control.decrement()
                         elif 'dealer_adrenaline_beer_live' in blank_think_acts or 'dealer_adrenaline_beer_blank' in blank_think_acts:
                             result = ''
                             if not action_window:
@@ -856,9 +857,9 @@ class UIApp(tk.Tk):
                                 if not result or not action_window.winfo_exists():
                                     raise KeyboardInterrupt()
                                 if result == 'Live':
-                                    self.live_count_control.value -= 1
+                                    self.live_count_control.decrement()
                                 else:
-                                    self.blank_count_control.value -= 1
+                                    self.blank_count_control.decrement()
                         elif 'dealer_saw' in live_think_acts or 'dealer_adrenaline_saw' in live_think_acts:
                             result = ''
                             if not action_window:
@@ -1046,7 +1047,7 @@ class UIApp(tk.Tk):
                             except IndexError:
                                 deleted = False
 
-                final_action = possibility_tree[0][0][turn_index]
+                final_action = possibility_tree[0][0][turn_index] if not 'You' in result and not 'Self' in result else ''
                 if 'you_saw' in final_action:
                     self.remove_you_item("Hand Saw")
                     you_sawed = True
@@ -1068,36 +1069,73 @@ class UIApp(tk.Tk):
                     self.remove_dealer_item("Beer")
                 elif 'you_glass' in final_action:
                     self.remove_you_item("Magnifying Glass")
+                elif 'dealer_glass' in final_action:
+                    self.remove_dealer_item("Magnifying Glass")
                 elif 'you_adrenaline_glass' in final_action:
                     self.remove_you_item("Adrenaline")
                     self.remove_dealer_item("Magnifying Glass")
                 elif 'you_cig' in final_action:
                     self.remove_you_item("Cigarettes")
                     self.you_hp_control.value += 1
+                elif 'dealer_cig' in final_action:
+                    self.remove_dealer_item("Cigarettes")
+                    self.dealer_hp_control.value += 1
                 elif 'you_adrenaline_cig' in final_action:
                     self.remove_you_item("Adrenaline")
                     self.remove_dealer_item("Cigarettes")
                     self.you_hp_control.value += 1
+                elif 'dealer_adrenaline_cig' in final_action:
+                    self.remove_dealer_item("Adrenaline")
+                    self.remove_you_item("Cigarettes")
+                    self.dealer_hp_control.value += 1
                 elif 'you_exp' in final_action:
                     if 'hit' in final_action:
-                        self.you_hp_control.value += 1
+                        for i in range(2):
+                            if self.you_hp_control.value < maximum_hp:
+                                self.you_hp_control.value += 1
                     elif 'miss' in final_action:
                         self.you_hp_control.decrement()
                         self.you_hp_control.decrement()
                     self.remove_you_item("Expired Medicine")
                 elif 'you_adrenaline_exp' in final_action:
                     if 'hit' in final_action:
-                        self.you_hp_control.value += 1
+                        for i in range(2):
+                            if self.you_hp_control.value < maximum_hp:
+                                self.you_hp_control.value += 1
                     elif 'miss' in final_action:
                         self.you_hp_control.decrement()
                         self.you_hp_control.decrement()
                     self.remove_you_item("Adrenaline")
                     self.remove_dealer_item("Expired Medicine")
+                elif 'dealer_exp' in final_action:
+                    if 'hit' in final_action:
+                        for i in range(2):
+                            if self.dealer_hp_control.value < maximum_hp:
+                                self.dealer_hp_control.value += 1
+                    elif 'miss' in final_action:
+                        self.dealer_hp_control.decrement()
+                        self.dealer_hp_control.decrement()
+                    self.remove_dealer_item("Expired Medicine")
+                elif 'you_adrenaline_exp' in final_action:
+                    if 'hit' in final_action:
+                        for i in range(2):
+                            if self.dealer_hp_control.value < maximum_hp:
+                                self.dealer_hp_control.value += 1
+                    elif 'miss' in final_action:
+                        self.dealer_hp_control.decrement()
+                        self.dealer_hp_control.decrement()
+                    self.remove_dealer_item("Adrenaline")
+                    self.remove_you_item("Expired Medicine")
                 elif 'you_cuff' in final_action:
                     self.remove_you_item("Handcuffs")
                 elif 'you_adrenaline_cuff' in final_action:
                     self.remove_you_item("Adrenaline")
                     self.remove_dealer_item("Handcuffs")
+                elif 'dealer_cuff' in final_action:
+                    self.remove_dealer_item("Handcuffs")
+                elif 'dealer_adrenaline_cuff' in final_action:
+                    self.remove_dealer_item("Adrenaline")
+                    self.remove_you_item("Handcuffs")
                 elif 'you_shoot_self_live' in final_action:
                     self.you_hp_control.decrement()
                 elif 'you_shoot_op_live' in final_action:
