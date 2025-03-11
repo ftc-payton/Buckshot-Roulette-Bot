@@ -1382,10 +1382,10 @@ def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomn
         stored_path = path.copy()
         stored_you_items = you_items.copy()
         stored_dealer_items = dealer_items.copy()
-        op_eval = sim_dealer_action(stored_you_items.copy(), stored_dealer_items.copy(), live, blank, dealer_hp, you_hp, stored_path.copy(), randomness * 0.5,'opponent', cuffed, prev_cuffed, False, 'live', phoned)
+        op_eval = sim_dealer_action(stored_you_items.copy(), stored_dealer_items.copy(), live, blank, dealer_hp, you_hp, stored_path.copy(), live_randomness,'opponent', cuffed, prev_cuffed, False, 'live', phoned)
         op_ptree = deepcopy(possibility_tree)
         possibility_tree = []
-        self_eval = sim_dealer_action(stored_you_items.copy(), stored_dealer_items.copy(), live, blank, dealer_hp, you_hp, stored_path.copy(), randomness * 0.5, 'self', cuffed, prev_cuffed, False, 'blank', phoned)
+        self_eval = sim_dealer_action(stored_you_items.copy(), stored_dealer_items.copy(), live, blank, dealer_hp, you_hp, stored_path.copy(), blank_randomness, 'self', cuffed, prev_cuffed, False, 'blank', phoned)
         self_ptree = deepcopy(possibility_tree)
         possibility_tree = op_ptree + self_ptree
         return
