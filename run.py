@@ -1838,14 +1838,14 @@ def sim_dealer_action(you_items, dealer_items, live, blank, dealer_hp, you_hp, p
         split(you_items, new_dealer_items.copy(), live, blank, dealer_hp, you_hp, new_path.copy(), randomness, 'dealer_shoot_choice_with_certainty','dealer', live_chance, 1, 'turn', cuffed, prev_cuffed, inverted, phoned)
         return
 
-    if "Handcuffs" in dealer_items and not prev_cuffed == 'you' and not cuffed == 'you':
+    if "Handcuffs" in dealer_items and not prev_cuffed == 'you' and not cuffed == 'you' and not (live == 1 and is_live_guaranteed) and not live == 0:
         new_dealer_items = dealer_items.copy()
         new_dealer_items.remove("Handcuffs")
         new_path = path.copy()
         new_path.append("dealer_cuff")
         sim_dealer_action(you_items, new_dealer_items.copy(), live, blank, dealer_hp, you_hp, new_path.copy(), randomness, choice, 'you', None, inverted, guarantee, phoned)
         return
-    elif "Handcuffs" in you_items and "Adrenaline" in dealer_items and not prev_cuffed == 'you' and not cuffed == 'you':
+    elif "Handcuffs" in you_items and "Adrenaline" in dealer_items and not prev_cuffed == 'you' and not cuffed == 'you' and not (live == 1 and is_live_guaranteed) and not live == 0:
         new_dealer_items = dealer_items.copy()
         new_dealer_items.remove("Adrenaline")
         new_you_items = you_items.copy()
@@ -1901,10 +1901,10 @@ def sim_dealer_action(you_items, dealer_items, live, blank, dealer_hp, you_hp, p
             new_path.append("dealer_adrenaline_invert")
             sim_dealer_action(new_you_items.copy(), new_dealer_items.copy(), live if not is_blank_guaranteed else (live + 1), blank if not is_blank_guaranteed else (blank - 1), dealer_hp, you_hp,new_path.copy(), randomness, 'opponent', cuffed, prev_cuffed, True, 'live' if guarantee == 'blank' else None, [phoned[0], phoned[1]] if phoned[0] != 1 else [phoned[0], ('Live' if phoned[1] == 'Blank' else 'Blank')])
             return
-        elif "Beer" in dealer_items:
+        elif "Beer" in dealer_items and live != 0:
             split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, "beer", "dealer", live_chance, 1, 'turn', cuffed, prev_cuffed, inverted, phoned)
             return
-        elif "Beer" in you_items and "Adrenaline" in dealer_items:
+        elif "Beer" in you_items and "Adrenaline" in dealer_items and live != 0:
             split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, "beer", "dealer", live_chance, 1, 'other', cuffed, prev_cuffed, inverted, phoned)
             return
         if not is_blank_guaranteed:
