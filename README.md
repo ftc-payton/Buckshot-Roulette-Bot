@@ -15,23 +15,23 @@ Download from the latest stable release:
   </tr>
   <tr>
     <td>Windows</td>
-    <td colspan="2" align="center"><a href="https://github.com/ftc-payton/Buckshot-Roulette-Bot/releases/download/v1.1.4/Buckshot_Roulette_Bot_v1.1.4_windows.exe">Download</a></td>
+    <td colspan="2" align="center"><a href="https://github.com/ftc-payton/Buckshot-Roulette-Bot/releases/download/v1.1.5/Buckshot_Roulette_Bot_v1.1.5_windows.exe">Download</a></td>
   </tr>
   <tr>
     <td>macOS</td>
-    <td colspan="2" align="center"><a href="https://github.com/ftc-payton/Buckshot-Roulette-Bot/releases/download/v1.1.4/Buckshot_Roulette_Bot_v1.1.4_macos_universal.zip">Download</a></td>
+    <td colspan="2" align="center"><a href="https://github.com/ftc-payton/Buckshot-Roulette-Bot/releases/download/v1.1.5/Buckshot_Roulette_Bot_v1.1.5_macos_universal.zip">Download</a></td>
   </tr>
   <tr>
     <td>Debian</td>
-    <td><a href="https://github.com/ftc-payton/Buckshot-Roulette-Bot/releases/download/v1.1.4/Buckshot_Roulette_Bot_v1.1.4_debian_x64">Download</a></td>
-    <td><a href="https://github.com/ftc-payton/Buckshot-Roulette-Bot/releases/download/v1.1.4/Buckshot_Roulette_Bot_v1.1.4_debian_arm64">Download</a></td>
+    <td><a href="https://github.com/ftc-payton/Buckshot-Roulette-Bot/releases/download/v1.1.5/Buckshot_Roulette_Bot_v1.1.5_debian_x64">Download</a></td>
+    <td><a href="https://github.com/ftc-payton/Buckshot-Roulette-Bot/releases/download/v1.1.5/Buckshot_Roulette_Bot_v1.1.5_debian_arm64">Download</a></td>
   </tr>
   <tr>
     <td>Arch</td>
-    <td><a href="https://github.com/ftc-payton/Buckshot-Roulette-Bot/releases/download/v1.1.4/Buckshot_Roulette_Bot_v1.1.4_arch_x64">Download</a></td>
-    <td><a href="https://github.com/ftc-payton/Buckshot-Roulette-Bot/releases/download/v1.1.4/Buckshot_Roulette_Bot_v1.1.4_arch_arm64">Download</a></td>
+    <td><a href="https://github.com/ftc-payton/Buckshot-Roulette-Bot/releases/download/v1.1.5/Buckshot_Roulette_Bot_v1.1.5_arch_x64">Download</a></td>
+    <td><a href="https://github.com/ftc-payton/Buckshot-Roulette-Bot/releases/download/v1.1.5/Buckshot_Roulette_Bot_v1.1.5_arch_arm64">Download</a></td>
   </tr>
   <tr>
-    <td colspan="3" align="center"><a href="https://github.com/ftc-payton/Buckshot-Roulette-Bot/releases/download/v1.1.4/Buckshot_Roulette_Bot_v1.1.4_script.py">Python Script (if your OS isn't listed)</a></td>
+    <td colspan="3" align="center"><a href="https://github.com/ftc-payton/Buckshot-Roulette-Bot/releases/download/v1.1.5/Buckshot_Roulette_Bot_v1.1.5_script.py">Python Script (if your OS isn't listed)</a></td>
   </tr>
 </table>

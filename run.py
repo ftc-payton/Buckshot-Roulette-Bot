@@ -110,6 +110,7 @@ class ActionWindow(tk.Toplevel):
             "MR_you_exp": "Use the expired medicine. Did it succeed?",
             "MR_you_adrenaline_exp": "Use the adrenaline to steal the expired medicine. Did it succeed?",
             "MR_dealer_exp": "The dealer will use expired medicine. Did it succeed?",
+            "MR_dealer_adrenaline_exp": "The dealer will use adrenaline to steal the expired medicine. Did it succeed?",
             "dealer_invert": "The dealer will use the inverter.",
             "SR_dealer_beer": "Which shell did the dealer eject?",
             "HR_dealer_invert": "Did the dealer use the inverter?",
@@ -432,18 +433,17 @@ class UIApp(tk.Tk):
         self.canvas.create_text(mid_x, mid_y, text="Shotgun", font=("Arial", 12), fill="black")
 
     def create_left_panel(self):
-        # TODO: add images for items
         self.item_buttons = []
         self.item_data = [
-            {"name": "Burner Phone", "image": "images/image1.png"},
-            {"name": "Inverter", "image": "images/image2.png"},
-            {"name": "Expired Medicine", "image": "images/image3.png"},
-            {"name": "Beer", "image": "images/image4.png"},
-            {"name": "Adrenaline", "image": "images/image5.png"},
-            {"name": "Cigarette Pack", "image": "images/image6.png"},
-            {"name": "Hand Saw", "image": "images/image7.png"},
-            {"name": "Handcuffs", "image": "images/image8.png"},
-            {"name": "Magnifying Glass", "image": "images/image9.png"}
+            {"name": "Burner Phone", "image": "PH"},
+            {"name": "Inverter", "image": "PH"},
+            {"name": "Expired Medicine", "image": "PH"},
+            {"name": "Beer", "image": "PH"},
+            {"name": "Adrenaline", "image": "PH"},
+            {"name": "Cigarette Pack", "image": "PH"},
+            {"name": "Hand Saw", "image": "PH"},
+            {"name": "Handcuffs", "image": "PH"},
+            {"name": "Magnifying Glass", "image": "PH"}
         ]
         for i, data in enumerate(self.item_data):
             btn = Button(self.left_frame, text=data["name"],
@@ -664,6 +664,7 @@ class UIApp(tk.Tk):
                 action_common_you_exp = all("you_exp" in item for item in actions) if actions else False
                 action_common_you_adrenaline_exp = all("you_adrenaline_exp" in item for item in actions) if actions else False
                 action_common_dealer_exp = all("dealer_exp" in item for item in actions) if actions else False
+                action_common_dealer_adrenaline_exp = all("dealer_adrenaline_exp" in item for item in actions) if actions else False
                 action_common_dealer_think = all("dealer_think" in item for item in actions) if actions else False
                 action_same = all(x == actions[0] for x in actions) if actions else False
                 if not action_same:
@@ -700,6 +701,8 @@ class UIApp(tk.Tk):
                         actual_action = "MR_you_adrenaline_exp"
                     elif action_common_dealer_exp:
                         actual_action = "MR_dealer_exp"
+                    elif action_common_dealer_adrenaline_exp:
+                        actual_action = "MR_dealer_adrenaline_exp"
                     elif action_common_dealer_think:
                         blank_think = None
                         live_think = None
