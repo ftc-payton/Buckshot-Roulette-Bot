@@ -10,8 +10,9 @@ result = ''
 maximum_hp = 0
 action_window = None
 
+
 class NumericControl(tk.Frame):
-    def __init__(self, master, initial_value=0, callback=None, upper_bound = 8, lower_bound = 0, **kwargs):
+    def __init__(self, master, initial_value=0, callback=None, upper_bound=8, lower_bound=0, **kwargs):
         super().__init__(master, **kwargs)
         self.value = initial_value
         self.callback = callback
@@ -26,7 +27,6 @@ class NumericControl(tk.Frame):
 
         self.plus_btn = tk.Button(self, text="+", width=2, command=self.increment)
         self.plus_btn.grid(row=0, column=2)
-
 
     def set_value(self, new_value):
         self.value = new_value
@@ -49,6 +49,7 @@ class NumericControl(tk.Frame):
         self.value_label.config(text=str(self.value))
         if self.callback:
             self.callback(self, old_value)
+
 
 class ActionWindow(tk.Toplevel):
     def __init__(self, master, initial_action, you_prob, dealer_prob, none_prob, shells=0):
@@ -147,7 +148,8 @@ class ActionWindow(tk.Toplevel):
         self.prob_canvas.pack(fill="x", padx=20, pady=(20, 5))
         self.bind("<Configure>", lambda event: self.draw_prob_bar())
 
-        self.label = tk.Label(self, text=(self.action_text_map.get(initial_action, "") if self.current_dealer_prob != 1.0 else "You are guaranteed to lose."))
+        self.label = tk.Label(self, text=(self.action_text_map.get(initial_action,
+                                                                   "") if self.current_dealer_prob != 1.0 else "You are guaranteed to lose."))
         self.label.pack(padx=20, pady=20)
 
         self.button_frame = tk.Frame(self)
@@ -166,9 +168,9 @@ class ActionWindow(tk.Toplevel):
         elif isinstance(action, list):
             if not self.is_guaranteed_list:
                 tk.Button(self.button_frame, text="Yes",
-                        command=lambda: self.on_choice("Yes")).pack(side="left", padx=10)
+                          command=lambda: self.on_choice("Yes")).pack(side="left", padx=10)
                 tk.Button(self.button_frame, text="No",
-                        command=lambda: self.on_choice("No")).pack(side="left", padx=10)
+                          command=lambda: self.on_choice("No")).pack(side="left", padx=10)
             else:
                 tk.Button(self.button_frame, text="Next",
                           command=lambda: self.on_choice("Next")).pack(padx=10)
@@ -180,9 +182,9 @@ class ActionWindow(tk.Toplevel):
                 self.numeric_control = NumericControl(numeric_frame, 2, lower_bound=2, upper_bound=self.shells)
                 self.numeric_control.pack(side="left", padx=10)
             tk.Button(self.button_frame, text="Live",
-                        command=lambda: self.on_choice("Live")).pack(side="left", padx=10)
+                      command=lambda: self.on_choice("Live")).pack(side="left", padx=10)
             tk.Button(self.button_frame, text="Blank",
-                        command=lambda: self.on_choice("Blank")).pack(side="left", padx=10)
+                      command=lambda: self.on_choice("Blank")).pack(side="left", padx=10)
         elif action.startswith("CR_"):
             tk.Button(self.button_frame, text="Self",
                       command=lambda: self.on_choice("Self")).pack(side="left", padx=10)
@@ -209,12 +211,14 @@ class ActionWindow(tk.Toplevel):
         self.result_var.set([])
         self.destroy()
 
-    def update_window(self, new_action, new_you_prob, new_dealer_prob, new_none_prob, guaranteed_action_list = False, destroy = False):
+    def update_window(self, new_action, new_you_prob, new_dealer_prob, new_none_prob, guaranteed_action_list=False,
+                      destroy=False):
         if destroy:
             self.destroy()
             return
         self.action = new_action
-        self.label.config(text=(self.action_text_map.get(new_action, "") if new_dealer_prob != 1.0 else "You are guaranteed to lose."))
+        self.label.config(text=(
+            self.action_text_map.get(new_action, "") if new_dealer_prob != 1.0 else "You are guaranteed to lose."))
 
         self.create_buttons(new_action)
 
@@ -266,6 +270,7 @@ class ActionWindow(tk.Toplevel):
                 return [self.numeric_control.value, self.result_var.get()]
         else:
             self.destroy()
+
 
 class DraggableItem:
     def __init__(self, canvas, x, y, name, image_path):
@@ -365,7 +370,6 @@ class DropTarget:
             self.items.remove(item)
 
 
-
 class UIApp(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -393,7 +397,6 @@ class UIApp(tk.Tk):
         self.create_right_panel()
 
         self.focus_force()
-
 
     def create_table(self):
         table_x0, table_y0, table_x1, table_y1 = 150, 150, 550, 550
@@ -484,15 +487,18 @@ class UIApp(tk.Tk):
                     self.max_hp_control.set_value(control.value)
 
         tk.Label(middle_frame, text="Max HP:", bg="lightgray", fg="black").grid(row=0, column=0, padx=2)
-        self.max_hp_control = NumericControl(middle_frame, initial_value=1, callback=health_callback, upper_bound=5, lower_bound=1)
+        self.max_hp_control = NumericControl(middle_frame, initial_value=1, callback=health_callback, upper_bound=5,
+                                             lower_bound=1)
         self.max_hp_control.grid(row=0, column=1, padx=2)
 
         tk.Label(middle_frame, text="Dealer HP:", bg="lightgray", fg="black").grid(row=1, column=0, padx=2)
-        self.dealer_hp_control = NumericControl(middle_frame, initial_value=1, callback=health_callback, upper_bound=5, lower_bound=1)
+        self.dealer_hp_control = NumericControl(middle_frame, initial_value=1, callback=health_callback, upper_bound=5,
+                                                lower_bound=1)
         self.dealer_hp_control.grid(row=1, column=1, padx=2)
 
         tk.Label(middle_frame, text="Your HP:", bg="lightgray", fg="black").grid(row=2, column=0, padx=2)
-        self.you_hp_control = NumericControl(middle_frame, initial_value=1, callback=health_callback, upper_bound=5, lower_bound=1)
+        self.you_hp_control = NumericControl(middle_frame, initial_value=1, callback=health_callback, upper_bound=5,
+                                             lower_bound=1)
         self.you_hp_control.grid(row=2, column=1, padx=2)
 
         self.go_btn = Button(right_inner, text="Go", command=self.run_go)
@@ -595,7 +601,6 @@ class UIApp(tk.Tk):
             player_hp = self.you_hp_control.value
             max_hp = self.max_hp_control.value
 
-
             global possibility_tree
             possibility_tree = []
 
@@ -651,20 +656,27 @@ class UIApp(tk.Tk):
                 action_common_you_shoot_op = all("you_shoot_op_" in item for item in actions) if actions else False
                 action_common_you_shoot_self = all("you_shoot_self_" in item for item in actions) if actions else False
                 action_common_dealer_shoot = all("dealer_shoot_" in item for item in actions) if actions else False
-                action_common_dealer_shoot_op = all("dealer_shoot_op_" in item for item in actions) if actions else False
-                action_common_dealer_shoot_self = all("dealer_shoot_self_" in item for item in actions) if actions else False
+                action_common_dealer_shoot_op = all(
+                    "dealer_shoot_op_" in item for item in actions) if actions else False
+                action_common_dealer_shoot_self = all(
+                    "dealer_shoot_self_" in item for item in actions) if actions else False
                 dealer_potential_saw = any("dealer_saw" in item for item in actions) if actions else False
                 action_common_dealer_saw = all("dealer_saw" in item for item in actions) if actions else False
                 action_common_you_glass = all("you_glass" in item for item in actions) if actions else False
                 action_common_you_beer = all("you_beer" in item for item in actions) if actions else False
-                action_common_you_adrenaline_beer = all("you_adrenaline_beer" in item for item in actions) if actions else False
-                action_common_you_adrenaline_glass = all("you_adrenaline_glass" in item for item in actions) if actions else False
+                action_common_you_adrenaline_beer = all(
+                    "you_adrenaline_beer" in item for item in actions) if actions else False
+                action_common_you_adrenaline_glass = all(
+                    "you_adrenaline_glass" in item for item in actions) if actions else False
                 action_common_you_invert = all("you_invert" in item for item in actions) if actions else False
-                action_common_you_adrenaline_invert = all("you_adrenaline_invert" in item for item in actions) if actions else False
+                action_common_you_adrenaline_invert = all(
+                    "you_adrenaline_invert" in item for item in actions) if actions else False
                 action_common_you_exp = all("you_exp" in item for item in actions) if actions else False
-                action_common_you_adrenaline_exp = all("you_adrenaline_exp" in item for item in actions) if actions else False
+                action_common_you_adrenaline_exp = all(
+                    "you_adrenaline_exp" in item for item in actions) if actions else False
                 action_common_dealer_exp = all("dealer_exp" in item for item in actions) if actions else False
-                action_common_dealer_adrenaline_exp = all("dealer_adrenaline_exp" in item for item in actions) if actions else False
+                action_common_dealer_adrenaline_exp = all(
+                    "dealer_adrenaline_exp" in item for item in actions) if actions else False
                 action_common_dealer_think = all("dealer_think" in item for item in actions) if actions else False
                 action_same = all(x == actions[0] for x in actions) if actions else False
                 if not action_same:
@@ -749,9 +761,11 @@ class UIApp(tk.Tk):
                         elif 'dealer_adrenaline_invert' in blank_think_acts:
                             result = ''
                             if not action_window:
-                                action_window = ActionWindow(self, "HR_dealer_adrenaline_invert", you_prob, dealer_prob, none_prob)
+                                action_window = ActionWindow(self, "HR_dealer_adrenaline_invert", you_prob, dealer_prob,
+                                                             none_prob)
                             else:
-                                action_window.update_window("HR_dealer_adrenaline_invert", you_prob, dealer_prob, none_prob)
+                                action_window.update_window("HR_dealer_adrenaline_invert", you_prob, dealer_prob,
+                                                            none_prob)
                             result = action_window.wait_for_result()
                             if not result or not action_window.winfo_exists():
                                 raise KeyboardInterrupt()
@@ -816,9 +830,11 @@ class UIApp(tk.Tk):
                         elif 'dealer_adrenaline_beer_live' in blank_think_acts or 'dealer_adrenaline_beer_blank' in blank_think_acts:
                             result = ''
                             if not action_window:
-                                action_window = ActionWindow(self, "HR_dealer_adrenaline_beer", you_prob, dealer_prob, none_prob)
+                                action_window = ActionWindow(self, "HR_dealer_adrenaline_beer", you_prob, dealer_prob,
+                                                             none_prob)
                             else:
-                                action_window.update_window("HR_dealer_adrenaline_beer", you_prob, dealer_prob, none_prob)
+                                action_window.update_window("HR_dealer_adrenaline_beer", you_prob, dealer_prob,
+                                                            none_prob)
                             result = action_window.wait_for_result()
                             if not result or not action_window.winfo_exists():
                                 raise KeyboardInterrupt()
@@ -857,7 +873,8 @@ class UIApp(tk.Tk):
                                     elif possibility_tree[i][0][-1] == "full_end_no_win":
                                         none_prob += (possibility_tree[i][1] * (1 / full_prob))
 
-                                action_window.update_window("SR_dealer_adrenaline_beer", you_prob, dealer_prob, none_prob)
+                                action_window.update_window("SR_dealer_adrenaline_beer", you_prob, dealer_prob,
+                                                            none_prob)
                                 result = action_window.wait_for_result()
                                 if not result or not action_window.winfo_exists():
                                     raise KeyboardInterrupt()
@@ -868,9 +885,13 @@ class UIApp(tk.Tk):
                         elif 'dealer_saw' in live_think_acts or 'dealer_adrenaline_saw' in live_think_acts:
                             result = ''
                             if not action_window:
-                                action_window = ActionWindow(self, "HR_dealer_saw" if not 'dealer_adrenaline_saw' in live_think_acts else "HR_dealer_adrenaline_saw", you_prob, dealer_prob, none_prob)
+                                action_window = ActionWindow(self,
+                                                             "HR_dealer_saw" if not 'dealer_adrenaline_saw' in live_think_acts else "HR_dealer_adrenaline_saw",
+                                                             you_prob, dealer_prob, none_prob)
                             else:
-                                action_window.update_window("HR_dealer_saw" if not 'dealer_adrenaline_saw' in live_think_acts else "HR_dealer_adrenaline_saw", you_prob, dealer_prob, none_prob)
+                                action_window.update_window(
+                                    "HR_dealer_saw" if not 'dealer_adrenaline_saw' in live_think_acts else "HR_dealer_adrenaline_saw",
+                                    you_prob, dealer_prob, none_prob)
                             result = action_window.wait_for_result()
                             if not result or not action_window.winfo_exists():
                                 raise KeyboardInterrupt()
@@ -1052,7 +1073,8 @@ class UIApp(tk.Tk):
                             except IndexError:
                                 deleted = False
 
-                final_action = possibility_tree[0][0][turn_index] if not 'You' in result and not 'Self' in result else ''
+                final_action = possibility_tree[0][0][
+                    turn_index] if not 'You' in result and not 'Self' in result else ''
                 if 'you_saw' in final_action:
                     self.remove_you_item("Hand Saw")
                     you_sawed = True
@@ -1176,7 +1198,8 @@ class UIApp(tk.Tk):
                         self.blank_count_control.decrement()
 
                 print(possibility_tree)
-                if not 'CR' in actual_action and not (dealer_potential_saw and result == "No" and not action_common_dealer_saw):
+                if not 'CR' in actual_action and not (
+                        dealer_potential_saw and result == "No" and not action_common_dealer_saw):
                     turn_index += 1
                 game_not_resolved = not len(possibility_tree) == 1
 
@@ -1224,12 +1247,9 @@ class UIApp(tk.Tk):
             self.after(0, self.go_btn.config, {"text": "Go"})
             self.after(0, self.calc_label.config, {"text": ""})
 
-
-
-
-
     def go(self, you_items, dealer_items, live, blank, dealer_hp, you_hp, max_hp):
-        if ((live <= 0) and (blank <= 0)) or (dealer_hp <= 0) or (you_hp <= 0) or (max_hp < you_hp or max_hp < dealer_hp):
+        if ((live <= 0) and (blank <= 0)) or (dealer_hp <= 0) or (you_hp <= 0) or (
+                max_hp < you_hp or max_hp < dealer_hp):
             global action_window
             action_window = ActionWindow(self, "IC", 0.0, 0.0, 0.0)
             action_window.wait_for_result()
@@ -1242,25 +1262,27 @@ class UIApp(tk.Tk):
         print("Live:Blank", f"{live}:{blank}")
         print("Your Health:Dealer Health", f"{you_hp}:{dealer_hp}")
 
-
         global maximum_hp
         maximum_hp = max_hp
 
         phoned = None
         if "Burner Phone" in you_items and live != 0 and blank != 0:
-            action_window = ActionWindow(self,"SR_PR_you_phone", 0.0, 0.0, 0.0, shells=live+blank)
+            action_window = ActionWindow(self, "SR_PR_you_phone", 0.0, 0.0, 0.0, shells=live + blank)
             phoned = action_window.wait_for_result()
             print(phoned)
             if phoned[1] == '':
                 raise KeyboardInterrupt()
-            action_window.update_window('',0.0,0.0,0.0,destroy=True)
+            action_window.update_window('', 0.0, 0.0, 0.0, destroy=True)
         if not phoned:
             phoned = [0, '']
 
-        result = eval(you_items,dealer_items,live,blank,dealer_hp,you_hp,["full_start"],1.0, None, 'you', phoned=phoned)
+        result = eval(you_items, dealer_items, live, blank, dealer_hp, you_hp, ["full_start"], 1.0, None, 'you',
+                      phoned=phoned)
         return 'completed'
 
-def eval(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, turn, force_dismiss_search = False, cuffed = None, prev_cuffed = None, phoned = [0,'']):
+
+def eval(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, turn,
+         force_dismiss_search=False, cuffed=None, prev_cuffed=None, phoned=[0, '']):
     if any("full_end_dealer_win" in item for item in path) or any("full_end_player_win" in item for item in path):
         if dealer_hp <= 0 or you_hp <= 0:
             return
@@ -1284,12 +1306,13 @@ def eval(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomne
         return
 
     if turn == 'dealer':
-        result = sim_dealer_action(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, None, cuffed, prev_cuffed, False, guarantee,phoned)
+        result = sim_dealer_action(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, None,
+                                   cuffed, prev_cuffed, False, guarantee, phoned)
         return result
 
     if not phoned[1] or phoned[0] <= 0:
         live_chance = live / (live + blank)
-        blank_chance =  blank / (live + blank)
+        blank_chance = blank / (live + blank)
     elif phoned[0] == 1:
         live_chance = 1.0 if phoned[1] == 'Live' else 0.0
         blank_chance = 1.0 if phoned[1] == 'Blank' else 0.0
@@ -1301,8 +1324,10 @@ def eval(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomne
         blank_chance = (blank - 1) / (live + blank - 1)
 
     is_live_likely = live_chance > blank_chance
-    is_live_guaranteed = (live_chance == 1.0 or guarantee == 'live' or (phoned[1] == 'Live' and phoned[0] == 1)) and not 'likely_live' in path[-1]
-    is_blank_guaranteed = (blank_chance == 1.0 or guarantee == 'blank' or (phoned[1] == 'Blank' and phoned[0] == 1)) and not 'likely_blank' in path[-1]
+    is_live_guaranteed = (live_chance == 1.0 or guarantee == 'live' or (
+                phoned[1] == 'Live' and phoned[0] == 1)) and not 'likely_live' in path[-1]
+    is_blank_guaranteed = (blank_chance == 1.0 or guarantee == 'blank' or (
+                phoned[1] == 'Blank' and phoned[0] == 1)) and not 'likely_blank' in path[-1]
     is_blank_likely = blank_chance < live_chance
     equally_likely = live_chance == blank_chance
 
@@ -1311,7 +1336,9 @@ def eval(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomne
             passing = ["glass"]
         else:
             passing = []
-        search(you_items,dealer_items,live,blank,dealer_hp,you_hp,path,randomness,'live' if is_live_guaranteed else 'blank' if is_blank_guaranteed else None, passing, prev_cuffed, cuffed, phoned)
+        search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness,
+               'live' if is_live_guaranteed else 'blank' if is_blank_guaranteed else None, passing, prev_cuffed, cuffed,
+               phoned)
         return path
 
     # finalizers
@@ -1329,7 +1356,9 @@ def eval(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomne
             return
         else:
             path.append("you_shoot_op_live")
-            result = eval(you_items, dealer_items, live - 1, blank, dealer_hp - potential_damage, you_hp, path, randomness, None, 'dealer' if cuffed != 'dealer' else 'you', False, None, cuffed, [phoned[0] - 1, phoned[1]])
+            result = eval(you_items, dealer_items, live - 1, blank, dealer_hp - potential_damage, you_hp, path,
+                          randomness, None, 'dealer' if cuffed != 'dealer' else 'you', False, None, cuffed,
+                          [phoned[0] - 1, phoned[1]])
             return result
 
     if "Hand Saw" in you_items and live_chance >= blank_chance:
@@ -1341,26 +1370,29 @@ def eval(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomne
 
     if is_blank_guaranteed:
         path.append("you_shoot_self_blank")
-        result = eval(you_items, dealer_items, live, blank - 1, dealer_hp, you_hp, path, randomness, None, 'you', False, cuffed, prev_cuffed, [phoned[0] - 1, phoned[1]])
+        result = eval(you_items, dealer_items, live, blank - 1, dealer_hp, you_hp, path, randomness, None, 'you', False,
+                      cuffed, prev_cuffed, [phoned[0] - 1, phoned[1]])
         return result
 
     if (live_chance >= blank_chance or 'likely_blank' in path[-1]) and not 'likely_live' in path[-1]:
-        result = split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, 'opponent', 'you', live_chance, potential_damage, 'turn', cuffed, prev_cuffed, False, phoned)
+        result = split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, 'opponent', 'you',
+                       live_chance, potential_damage, 'turn', cuffed, prev_cuffed, False, phoned)
         return result
     else:
-        result = split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, 'self', 'you', live_chance, potential_damage, 'turn', cuffed, prev_cuffed, False, phoned)
+        result = split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, 'self', 'you',
+                       live_chance, potential_damage, 'turn', cuffed, prev_cuffed, False, phoned)
         return result
 
 
-
-def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, action, turn, live_odds, potential_damage = 1, whose = 'turn', cuffed = None, prev_cuffed = None, inverted = False, phoned = [0,'']):
+def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, action, turn, live_odds,
+          potential_damage=1, whose='turn', cuffed=None, prev_cuffed=None, inverted=False, phoned=[0, '']):
     global possibility_tree
     live_randomness = randomness * live_odds
     blank_randomness = randomness * (1 - live_odds)
 
     if not phoned[1] or phoned[0] <= 0:
         live_chance = live / (live + blank)
-        blank_chance =  blank / (live + blank)
+        blank_chance = blank / (live + blank)
     elif phoned[0] == 1:
         live_chance = 1.0 if phoned[1] == 'Live' else 0.0
         blank_chance = 1.0 if phoned[1] == 'Blank' else 0.0
@@ -1371,15 +1403,18 @@ def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomn
         live_chance = (live) / (live + blank - 1)
         blank_chance = (blank - 1) / (live + blank - 1)
 
-
     if action == 'dealer_shoot_choice':
         stored_path = path.copy()
         stored_you_items = you_items.copy()
         stored_dealer_items = dealer_items.copy()
-        op_eval = sim_dealer_action(stored_you_items.copy(), stored_dealer_items.copy(), live, blank, dealer_hp, you_hp, stored_path.copy(), randomness * 0.5,'opponent', cuffed, prev_cuffed, inverted, phoned=phoned)
+        op_eval = sim_dealer_action(stored_you_items.copy(), stored_dealer_items.copy(), live, blank, dealer_hp, you_hp,
+                                    stored_path.copy(), randomness * 0.5, 'opponent', cuffed, prev_cuffed, inverted,
+                                    phoned=phoned)
         op_ptree = deepcopy(possibility_tree)
         possibility_tree = []
-        self_eval = sim_dealer_action(stored_you_items.copy(), stored_dealer_items.copy(), live, blank, dealer_hp, you_hp, stored_path.copy(), randomness * 0.5, 'self', cuffed, prev_cuffed, inverted, phoned=phoned)
+        self_eval = sim_dealer_action(stored_you_items.copy(), stored_dealer_items.copy(), live, blank, dealer_hp,
+                                      you_hp, stored_path.copy(), randomness * 0.5, 'self', cuffed, prev_cuffed,
+                                      inverted, phoned=phoned)
         self_ptree = deepcopy(possibility_tree)
         possibility_tree = op_ptree + self_ptree
         return
@@ -1387,10 +1422,14 @@ def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomn
         stored_path = path.copy()
         stored_you_items = you_items.copy()
         stored_dealer_items = dealer_items.copy()
-        op_eval = sim_dealer_action(stored_you_items.copy(), stored_dealer_items.copy(), live, blank, dealer_hp, you_hp, stored_path.copy(), live_randomness,'opponent', cuffed, prev_cuffed, False, 'live', phoned)
+        op_eval = sim_dealer_action(stored_you_items.copy(), stored_dealer_items.copy(), live, blank, dealer_hp, you_hp,
+                                    stored_path.copy(), live_randomness, 'opponent', cuffed, prev_cuffed, False, 'live',
+                                    phoned)
         op_ptree = deepcopy(possibility_tree)
         possibility_tree = []
-        self_eval = sim_dealer_action(stored_you_items.copy(), stored_dealer_items.copy(), live, blank, dealer_hp, you_hp, stored_path.copy(), blank_randomness, 'self', cuffed, prev_cuffed, False, 'blank', phoned)
+        self_eval = sim_dealer_action(stored_you_items.copy(), stored_dealer_items.copy(), live, blank, dealer_hp,
+                                      you_hp, stored_path.copy(), blank_randomness, 'self', cuffed, prev_cuffed, False,
+                                      'blank', phoned)
         self_ptree = deepcopy(possibility_tree)
         possibility_tree = op_ptree + self_ptree
         return
@@ -1404,12 +1443,16 @@ def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomn
                 new_you_items.remove("Beer")
                 live_path = stored_path.copy()
                 live_path.append("you_beer_live")
-                live_eval = eval(new_you_items.copy(), stored_dealer_items.copy(), live - 1, blank, dealer_hp, you_hp, live_path.copy(), live_randomness, None, turn, False, cuffed, prev_cuffed, [phoned[0] - 1, phoned[1]])
+                live_eval = eval(new_you_items.copy(), stored_dealer_items.copy(), live - 1, blank, dealer_hp, you_hp,
+                                 live_path.copy(), live_randomness, None, turn, False, cuffed, prev_cuffed,
+                                 [phoned[0] - 1, phoned[1]])
                 live_ptree = deepcopy(possibility_tree)
                 possibility_tree = []
                 blank_path = stored_path.copy()
                 blank_path.append("you_beer_blank")
-                blank_eval = eval(new_you_items.copy(), stored_dealer_items.copy(), live, blank - 1, dealer_hp, you_hp, blank_path.copy(), blank_randomness, None, turn, False, cuffed, prev_cuffed, [phoned[0] - 1, phoned[1]])
+                blank_eval = eval(new_you_items.copy(), stored_dealer_items.copy(), live, blank - 1, dealer_hp, you_hp,
+                                  blank_path.copy(), blank_randomness, None, turn, False, cuffed, prev_cuffed,
+                                  [phoned[0] - 1, phoned[1]])
                 blank_ptree = deepcopy(possibility_tree)
                 possibility_tree = live_ptree + blank_ptree
                 return
@@ -1421,12 +1464,16 @@ def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomn
                 new_you_items.remove("Adrenaline")
                 live_path = stored_path.copy()
                 live_path.append("you_adrenaline_beer_live")
-                live_eval = eval(new_you_items.copy(), new_dealer_items.copy(), live - 1, blank, dealer_hp, you_hp, live_path.copy(), live_randomness, None, turn, False, cuffed, prev_cuffed, [phoned[0] - 1, phoned[1]])
+                live_eval = eval(new_you_items.copy(), new_dealer_items.copy(), live - 1, blank, dealer_hp, you_hp,
+                                 live_path.copy(), live_randomness, None, turn, False, cuffed, prev_cuffed,
+                                 [phoned[0] - 1, phoned[1]])
                 live_ptree = deepcopy(possibility_tree)
                 possibility_tree = []
                 blank_path = stored_path.copy()
                 blank_path.append("you_adrenaline_beer_blank")
-                blank_eval = eval(new_you_items.copy(), new_dealer_items.copy(), live, blank - 1, dealer_hp, you_hp, blank_path.copy(), blank_randomness, None, turn, False, cuffed, prev_cuffed, [phoned[0] - 1, phoned[1]])
+                blank_eval = eval(new_you_items.copy(), new_dealer_items.copy(), live, blank - 1, dealer_hp, you_hp,
+                                  blank_path.copy(), blank_randomness, None, turn, False, cuffed, prev_cuffed,
+                                  [phoned[0] - 1, phoned[1]])
                 blank_ptree = deepcopy(possibility_tree)
                 possibility_tree = live_ptree + blank_ptree
                 return
@@ -1438,12 +1485,16 @@ def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomn
                 stored_you_items = you_items.copy()
                 live_path = stored_path.copy()
                 live_path.append("dealer_beer_live")
-                live_eval = eval(stored_you_items.copy(), new_dealer_items.copy(), live - 1, blank, dealer_hp, you_hp, live_path.copy(), live_randomness, None, turn, False, cuffed, prev_cuffed, [phoned[0] - 1, phoned[1]])
+                live_eval = eval(stored_you_items.copy(), new_dealer_items.copy(), live - 1, blank, dealer_hp, you_hp,
+                                 live_path.copy(), live_randomness, None, turn, False, cuffed, prev_cuffed,
+                                 [phoned[0] - 1, phoned[1]])
                 live_ptree = deepcopy(possibility_tree)
                 possibility_tree = []
                 blank_path = stored_path.copy()
                 blank_path.append("dealer_beer_blank")
-                blank_eval = eval(stored_you_items.copy(), new_dealer_items.copy(), live, blank - 1, dealer_hp, you_hp, blank_path.copy(), blank_randomness, None, turn, False, cuffed, prev_cuffed, [phoned[0] - 1, phoned[1]])
+                blank_eval = eval(stored_you_items.copy(), new_dealer_items.copy(), live, blank - 1, dealer_hp, you_hp,
+                                  blank_path.copy(), blank_randomness, None, turn, False, cuffed, prev_cuffed,
+                                  [phoned[0] - 1, phoned[1]])
                 blank_ptree = deepcopy(possibility_tree)
                 possibility_tree = live_ptree + blank_ptree
                 return
@@ -1455,12 +1506,16 @@ def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomn
                 new_you_items.remove("Beer")
                 live_path = stored_path.copy()
                 live_path.append("dealer_adrenaline_beer_live")
-                live_eval = eval(new_you_items.copy(), new_dealer_items.copy(), live - 1, blank, dealer_hp, you_hp, live_path.copy(), live_randomness, None, turn, False, cuffed, prev_cuffed, [phoned[0] - 1, phoned[1]])
+                live_eval = eval(new_you_items.copy(), new_dealer_items.copy(), live - 1, blank, dealer_hp, you_hp,
+                                 live_path.copy(), live_randomness, None, turn, False, cuffed, prev_cuffed,
+                                 [phoned[0] - 1, phoned[1]])
                 live_ptree = deepcopy(possibility_tree)
                 possibility_tree = []
                 blank_path = stored_path.copy()
                 blank_path.append("dealer_adrenaline_beer_blank")
-                blank_eval = eval(new_you_items.copy(), new_dealer_items.copy(), live, blank - 1, dealer_hp, you_hp, blank_path.copy(), blank_randomness, None, turn, False, cuffed, prev_cuffed, [phoned[0] - 1, phoned[1]])
+                blank_eval = eval(new_you_items.copy(), new_dealer_items.copy(), live, blank - 1, dealer_hp, you_hp,
+                                  blank_path.copy(), blank_randomness, None, turn, False, cuffed, prev_cuffed,
+                                  [phoned[0] - 1, phoned[1]])
                 blank_ptree = deepcopy(possibility_tree)
                 possibility_tree = live_ptree + blank_ptree
                 return
@@ -1474,12 +1529,15 @@ def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomn
                 new_you_items.remove("Expired Medicine")
                 live_path = stored_path.copy()
                 live_path.append("you_exp_hit")
-                live_eval = eval(new_you_items.copy(), stored_dealer_items.copy(), live, blank, dealer_hp, (you_hp + 2) if (you_hp + 2) <= maximum_hp else (you_hp + 1) , live_path.copy(), randomness * 0.5, None, turn, False, cuffed, prev_cuffed, phoned)
+                live_eval = eval(new_you_items.copy(), stored_dealer_items.copy(), live, blank, dealer_hp,
+                                 (you_hp + 2) if (you_hp + 2) <= maximum_hp else (you_hp + 1), live_path.copy(),
+                                 randomness * 0.5, None, turn, False, cuffed, prev_cuffed, phoned)
                 live_ptree = deepcopy(possibility_tree)
                 possibility_tree = []
                 blank_path = stored_path.copy()
                 blank_path.append("you_exp_miss")
-                blank_eval = eval(new_you_items.copy(), stored_dealer_items.copy(), live, blank, dealer_hp, you_hp - 1, blank_path.copy(), randomness * 0.5, None, turn, False, cuffed, prev_cuffed, phoned)
+                blank_eval = eval(new_you_items.copy(), stored_dealer_items.copy(), live, blank, dealer_hp, you_hp - 1,
+                                  blank_path.copy(), randomness * 0.5, None, turn, False, cuffed, prev_cuffed, phoned)
                 blank_ptree = deepcopy(possibility_tree)
                 possibility_tree = live_ptree + blank_ptree
                 return
@@ -1491,12 +1549,15 @@ def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomn
                 new_you_items.remove("Adrenaline")
                 live_path = stored_path.copy()
                 live_path.append("you_adrenaline_exp_hit")
-                live_eval = eval(new_you_items.copy(), new_dealer_items.copy(), live, blank, dealer_hp, (you_hp + 2) if (you_hp + 2) <= maximum_hp else (you_hp + 1), live_path.copy(), randomness * 0.5, None, turn, False, cuffed, prev_cuffed, phoned)
+                live_eval = eval(new_you_items.copy(), new_dealer_items.copy(), live, blank, dealer_hp,
+                                 (you_hp + 2) if (you_hp + 2) <= maximum_hp else (you_hp + 1), live_path.copy(),
+                                 randomness * 0.5, None, turn, False, cuffed, prev_cuffed, phoned)
                 live_ptree = deepcopy(possibility_tree)
                 possibility_tree = []
                 blank_path = stored_path.copy()
                 blank_path.append("you_adrenaline_exp_miss")
-                blank_eval = eval(new_you_items.copy(), new_dealer_items.copy(), live, blank, dealer_hp, you_hp - 1, blank_path.copy(), randomness * 0.5, None, turn, False, cuffed, prev_cuffed, phoned)
+                blank_eval = eval(new_you_items.copy(), new_dealer_items.copy(), live, blank, dealer_hp, you_hp - 1,
+                                  blank_path.copy(), randomness * 0.5, None, turn, False, cuffed, prev_cuffed, phoned)
                 blank_ptree = deepcopy(possibility_tree)
                 possibility_tree = live_ptree + blank_ptree
                 return
@@ -1508,12 +1569,15 @@ def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomn
                 stored_you_items = you_items.copy()
                 live_path = stored_path.copy()
                 live_path.append("dealer_exp_hit")
-                live_eval = eval(stored_you_items.copy(), new_dealer_items.copy(), live, blank, (dealer_hp + 2) if (dealer_hp + 2) <= maximum_hp else (dealer_hp + 1), you_hp, live_path.copy(), randomness * 0.5, None, turn, False, cuffed, prev_cuffed, phoned)
+                live_eval = eval(stored_you_items.copy(), new_dealer_items.copy(), live, blank,
+                                 (dealer_hp + 2) if (dealer_hp + 2) <= maximum_hp else (dealer_hp + 1), you_hp,
+                                 live_path.copy(), randomness * 0.5, None, turn, False, cuffed, prev_cuffed, phoned)
                 live_ptree = deepcopy(possibility_tree)
                 possibility_tree = []
                 blank_path = stored_path.copy()
                 blank_path.append("dealer_exp_miss")
-                blank_eval = eval(stored_you_items.copy(), new_dealer_items.copy(), live, blank, dealer_hp - 1, you_hp, blank_path.copy(), randomness * 0.5, None, turn, False, cuffed, prev_cuffed, phoned)
+                blank_eval = eval(stored_you_items.copy(), new_dealer_items.copy(), live, blank, dealer_hp - 1, you_hp,
+                                  blank_path.copy(), randomness * 0.5, None, turn, False, cuffed, prev_cuffed, phoned)
                 blank_ptree = deepcopy(possibility_tree)
                 possibility_tree = live_ptree + blank_ptree
                 return
@@ -1525,12 +1589,15 @@ def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomn
                 new_you_items.remove("Expired Medicine")
                 live_path = stored_path.copy()
                 live_path.append("dealer_adrenaline_exp_hit")
-                live_eval = eval(new_you_items.copy(), new_dealer_items.copy(), live, blank, (dealer_hp + 2) if (dealer_hp + 2) <= maximum_hp else (dealer_hp + 1), you_hp, live_path.copy(), randomness * 0.5, None, turn, False, cuffed, prev_cuffed, phoned)
+                live_eval = eval(new_you_items.copy(), new_dealer_items.copy(), live, blank,
+                                 (dealer_hp + 2) if (dealer_hp + 2) <= maximum_hp else (dealer_hp + 1), you_hp,
+                                 live_path.copy(), randomness * 0.5, None, turn, False, cuffed, prev_cuffed, phoned)
                 live_ptree = deepcopy(possibility_tree)
                 possibility_tree = []
                 blank_path = stored_path.copy()
                 blank_path.append("dealer_adrenaline_exp_miss")
-                blank_eval = eval(new_you_items.copy(), new_dealer_items.copy(), live, blank, dealer_hp - 1, you_hp, blank_path.copy(), randomness * 0.5, None, turn, False, cuffed, prev_cuffed, phoned)
+                blank_eval = eval(new_you_items.copy(), new_dealer_items.copy(), live, blank, dealer_hp - 1, you_hp,
+                                  blank_path.copy(), randomness * 0.5, None, turn, False, cuffed, prev_cuffed, phoned)
                 blank_ptree = deepcopy(possibility_tree)
                 possibility_tree = live_ptree + blank_ptree
                 return
@@ -1547,7 +1614,10 @@ def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomn
                     live_path.append("you_invert_live_likely_live")
                 else:
                     live_path.append("you_invert_live_likely_blank")
-                live_eval = eval(new_you_items.copy(), stored_dealer_items.copy(), live - 1, blank + 1, dealer_hp, you_hp, live_path.copy(), live_randomness, None, turn, False, cuffed, prev_cuffed, [phoned[0], phoned[1]] if phoned[0] != 1 else [phoned[0], ('Live' if phoned[1] == 'Blank' else 'Blank')])
+                live_eval = eval(new_you_items.copy(), stored_dealer_items.copy(), live - 1, blank + 1, dealer_hp,
+                                 you_hp, live_path.copy(), live_randomness, None, turn, False, cuffed, prev_cuffed,
+                                 [phoned[0], phoned[1]] if phoned[0] != 1 else [phoned[0], (
+                                     'Live' if phoned[1] == 'Blank' else 'Blank')])
                 live_ptree = deepcopy(possibility_tree)
                 possibility_tree = []
                 blank_path = stored_path.copy()
@@ -1555,7 +1625,10 @@ def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomn
                     blank_path.append("you_invert_blank_likely_live")
                 else:
                     blank_path.append("you_invert_blank_likely_blank")
-                blank_eval = eval(new_you_items.copy(), stored_dealer_items.copy(), live + 1, blank - 1, dealer_hp, you_hp, blank_path.copy(), blank_randomness, None, turn, False, cuffed, prev_cuffed, [phoned[0], phoned[1]] if phoned[0] != 1 else [phoned[0], ('Live' if phoned[1] == 'Blank' else 'Blank')])
+                blank_eval = eval(new_you_items.copy(), stored_dealer_items.copy(), live + 1, blank - 1, dealer_hp,
+                                  you_hp, blank_path.copy(), blank_randomness, None, turn, False, cuffed, prev_cuffed,
+                                  [phoned[0], phoned[1]] if phoned[0] != 1 else [phoned[0], (
+                                      'Live' if phoned[1] == 'Blank' else 'Blank')])
                 blank_ptree = deepcopy(possibility_tree)
                 possibility_tree = live_ptree + blank_ptree
                 return
@@ -1570,7 +1643,10 @@ def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomn
                     live_path.append("you_adrenaline_invert_live_likely_live")
                 else:
                     live_path.append("you_adrenaline_invert_live_likely_blank")
-                live_eval = eval(new_you_items.copy(), new_dealer_items.copy(), live - 1, blank + 1, dealer_hp, you_hp, live_path.copy(), live_randomness, None, turn, False, cuffed, prev_cuffed, [phoned[0], phoned[1]] if phoned[0] != 1 else [phoned[0], ('Live' if phoned[1] == 'Blank' else 'Blank')])
+                live_eval = eval(new_you_items.copy(), new_dealer_items.copy(), live - 1, blank + 1, dealer_hp, you_hp,
+                                 live_path.copy(), live_randomness, None, turn, False, cuffed, prev_cuffed,
+                                 [phoned[0], phoned[1]] if phoned[0] != 1 else [phoned[0], (
+                                     'Live' if phoned[1] == 'Blank' else 'Blank')])
                 live_ptree = deepcopy(possibility_tree)
                 possibility_tree = []
                 blank_path = stored_path.copy()
@@ -1578,7 +1654,10 @@ def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomn
                     blank_path.append("you_adrenaline_invert_blank_likely_live")
                 else:
                     blank_path.append("you_adrenaline_invert_blank_likely_blank")
-                blank_eval = eval(new_you_items.copy(), new_dealer_items.copy(), live + 1, blank - 1, dealer_hp, you_hp, blank_path.copy(), blank_randomness, None, turn, False, cuffed, prev_cuffed, [phoned[0], phoned[1]] if phoned[0] != 1 else [phoned[0], ('Live' if phoned[1] == 'Blank' else 'Blank')])
+                blank_eval = eval(new_you_items.copy(), new_dealer_items.copy(), live + 1, blank - 1, dealer_hp, you_hp,
+                                  blank_path.copy(), blank_randomness, None, turn, False, cuffed, prev_cuffed,
+                                  [phoned[0], phoned[1]] if phoned[0] != 1 else [phoned[0], (
+                                      'Live' if phoned[1] == 'Blank' else 'Blank')])
                 blank_ptree = deepcopy(possibility_tree)
                 possibility_tree = live_ptree + blank_ptree
                 return
@@ -1590,12 +1669,18 @@ def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomn
                 stored_you_items = you_items.copy()
                 live_path = stored_path.copy()
                 live_path.append("dealer_invert_live")
-                live_eval = eval(stored_you_items.copy(), new_dealer_items.copy(), live - 1, blank + 1, dealer_hp, you_hp, live_path.copy(), live_randomness, None, turn, False, cuffed, prev_cuffed, [phoned[0], phoned[1]] if phoned[0] != 1 else [phoned[0], ('Live' if phoned[1] == 'Blank' else 'Blank')])
+                live_eval = eval(stored_you_items.copy(), new_dealer_items.copy(), live - 1, blank + 1, dealer_hp,
+                                 you_hp, live_path.copy(), live_randomness, None, turn, False, cuffed, prev_cuffed,
+                                 [phoned[0], phoned[1]] if phoned[0] != 1 else [phoned[0], (
+                                     'Live' if phoned[1] == 'Blank' else 'Blank')])
                 live_ptree = deepcopy(possibility_tree)
                 possibility_tree = []
                 blank_path = stored_path.copy()
                 blank_path.append("dealer_invert_blank")
-                blank_eval = eval(stored_you_items.copy(), new_dealer_items.copy(), live + 1, blank - 1, dealer_hp, you_hp, blank_path.copy(), blank_randomness, None, turn, False, cuffed, prev_cuffed, [phoned[0], phoned[1]] if phoned[0] != 1 else [phoned[0], ('Live' if phoned[1] == 'Blank' else 'Blank')])
+                blank_eval = eval(stored_you_items.copy(), new_dealer_items.copy(), live + 1, blank - 1, dealer_hp,
+                                  you_hp, blank_path.copy(), blank_randomness, None, turn, False, cuffed, prev_cuffed,
+                                  [phoned[0], phoned[1]] if phoned[0] != 1 else [phoned[0], (
+                                      'Live' if phoned[1] == 'Blank' else 'Blank')])
                 blank_ptree = deepcopy(possibility_tree)
                 possibility_tree = live_ptree + blank_ptree
                 return
@@ -1607,12 +1692,18 @@ def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomn
                 new_you_items.remove("Inverter")
                 live_path = stored_path.copy()
                 live_path.append("dealer_adrenaline_invert_live")
-                live_eval = eval(new_you_items.copy(), new_dealer_items.copy(), live - 1, blank + 1, dealer_hp, you_hp, live_path.copy(), live_randomness, None, turn, False, cuffed, prev_cuffed, [phoned[0], phoned[1]] if phoned[0] != 1 else [phoned[0], ('Live' if phoned[1] == 'Blank' else 'Blank')])
+                live_eval = eval(new_you_items.copy(), new_dealer_items.copy(), live - 1, blank + 1, dealer_hp, you_hp,
+                                 live_path.copy(), live_randomness, None, turn, False, cuffed, prev_cuffed,
+                                 [phoned[0], phoned[1]] if phoned[0] != 1 else [phoned[0], (
+                                     'Live' if phoned[1] == 'Blank' else 'Blank')])
                 live_ptree = deepcopy(possibility_tree)
                 possibility_tree = []
                 blank_path = stored_path.copy()
                 blank_path.append("dealer_adrenaline_invert_blank")
-                blank_eval = eval(new_you_items.copy(), new_dealer_items.copy(), live + 1, blank - 1, dealer_hp, you_hp, blank_path.copy(), blank_randomness, None, turn, False, cuffed, prev_cuffed, [phoned[0], phoned[1]] if phoned[0] != 1 else [phoned[0], ('Live' if phoned[1] == 'Blank' else 'Blank')])
+                blank_eval = eval(new_you_items.copy(), new_dealer_items.copy(), live + 1, blank - 1, dealer_hp, you_hp,
+                                  blank_path.copy(), blank_randomness, None, turn, False, cuffed, prev_cuffed,
+                                  [phoned[0], phoned[1]] if phoned[0] != 1 else [phoned[0], (
+                                      'Live' if phoned[1] == 'Blank' else 'Blank')])
                 blank_ptree = deepcopy(possibility_tree)
                 possibility_tree = live_ptree + blank_ptree
                 return
@@ -1626,12 +1717,15 @@ def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomn
                 stored_dealer_items = dealer_items.copy()
                 live_path = stored_path.copy()
                 live_path.append("you_glass_live")
-                live_eval = eval(new_you_items.copy(), stored_dealer_items.copy(), live, blank, dealer_hp, you_hp, live_path.copy(), live_randomness, "live", turn, False, cuffed, prev_cuffed, phoned)
+                live_eval = eval(new_you_items.copy(), stored_dealer_items.copy(), live, blank, dealer_hp, you_hp,
+                                 live_path.copy(), live_randomness, "live", turn, False, cuffed, prev_cuffed, phoned)
                 live_ptree = deepcopy(possibility_tree)
                 possibility_tree = []
                 blank_path = stored_path.copy()
                 blank_path.append("you_glass_blank")
-                blank_eval = eval(new_you_items.copy(), stored_dealer_items.copy(), live, blank, dealer_hp, you_hp, blank_path.copy(), blank_randomness, "blank", turn, False, cuffed, prev_cuffed, phoned)
+                blank_eval = eval(new_you_items.copy(), stored_dealer_items.copy(), live, blank, dealer_hp, you_hp,
+                                  blank_path.copy(), blank_randomness, "blank", turn, False, cuffed, prev_cuffed,
+                                  phoned)
                 blank_ptree = deepcopy(possibility_tree)
                 possibility_tree = live_ptree + blank_ptree
                 return
@@ -1643,12 +1737,15 @@ def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomn
                 new_you_items.remove("Adrenaline")
                 live_path = stored_path.copy()
                 live_path.append("you_adrenaline_glass_live")
-                live_eval = eval(new_you_items.copy(), new_dealer_items.copy(), live, blank, dealer_hp, you_hp, live_path.copy(), live_randomness, "live", turn, False, cuffed, prev_cuffed, phoned)
+                live_eval = eval(new_you_items.copy(), new_dealer_items.copy(), live, blank, dealer_hp, you_hp,
+                                 live_path.copy(), live_randomness, "live", turn, False, cuffed, prev_cuffed, phoned)
                 live_ptree = deepcopy(possibility_tree)
                 possibility_tree = []
                 blank_path = stored_path.copy()
                 blank_path.append("you_adrenaline_glass_blank")
-                blank_eval = eval(new_you_items.copy(), new_dealer_items.copy(), live, blank, dealer_hp, you_hp, blank_path.copy(), blank_randomness, "blank", turn, False, cuffed, prev_cuffed, phoned)
+                blank_eval = eval(new_you_items.copy(), new_dealer_items.copy(), live, blank, dealer_hp, you_hp,
+                                  blank_path.copy(), blank_randomness, "blank", turn, False, cuffed, prev_cuffed,
+                                  phoned)
                 blank_ptree = deepcopy(possibility_tree)
                 possibility_tree = live_ptree + blank_ptree
                 return
@@ -1660,12 +1757,15 @@ def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomn
                 stored_you_items = you_items.copy()
                 live_path = stored_path.copy()
                 live_path.append("dealer_glass_live")
-                live_eval = eval(stored_you_items.copy(), new_dealer_items.copy(), live - 1, blank, dealer_hp, you_hp, live_path.copy(), live_randomness, "live", turn, False, cuffed, prev_cuffed, phoned)
+                live_eval = eval(stored_you_items.copy(), new_dealer_items.copy(), live - 1, blank, dealer_hp, you_hp,
+                                 live_path.copy(), live_randomness, "live", turn, False, cuffed, prev_cuffed, phoned)
                 live_ptree = deepcopy(possibility_tree)
                 possibility_tree = []
                 blank_path = stored_path.copy()
                 blank_path.append("dealer_glass_blank")
-                blank_eval = eval(stored_you_items.copy(), new_dealer_items.copy(), live, blank - 1, dealer_hp, you_hp, blank_path.copy(), blank_randomness, "blank", turn, False, cuffed, prev_cuffed, phoned)
+                blank_eval = eval(stored_you_items.copy(), new_dealer_items.copy(), live, blank - 1, dealer_hp, you_hp,
+                                  blank_path.copy(), blank_randomness, "blank", turn, False, cuffed, prev_cuffed,
+                                  phoned)
                 blank_ptree = deepcopy(possibility_tree)
                 possibility_tree = live_ptree + blank_ptree
                 return
@@ -1677,12 +1777,15 @@ def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomn
                 new_dealer_items.remove("Adrenaline")
                 live_path = stored_path.copy()
                 live_path.append("dealer_adrenaline_glass_live")
-                live_eval = eval(new_you_items.copy(), new_dealer_items.copy(), live - 1, blank, dealer_hp, you_hp, live_path.copy(),live_randomness, "live", turn, False, cuffed, prev_cuffed, phoned)
+                live_eval = eval(new_you_items.copy(), new_dealer_items.copy(), live - 1, blank, dealer_hp, you_hp,
+                                 live_path.copy(), live_randomness, "live", turn, False, cuffed, prev_cuffed, phoned)
                 live_ptree = deepcopy(possibility_tree)
                 possibility_tree = []
                 blank_path = stored_path.copy()
                 blank_path.append("dealer_adrenaline_glass_blank")
-                blank_eval = eval(new_you_items.copy(), new_dealer_items.copy(), live, blank - 1, dealer_hp, you_hp, blank_path.copy(),blank_randomness, "blank", turn, False, cuffed, prev_cuffed, phoned)
+                blank_eval = eval(new_you_items.copy(), new_dealer_items.copy(), live, blank - 1, dealer_hp, you_hp,
+                                  blank_path.copy(), blank_randomness, "blank", turn, False, cuffed, prev_cuffed,
+                                  phoned)
                 blank_ptree = deepcopy(possibility_tree)
                 possibility_tree = live_ptree + blank_ptree
                 return
@@ -1694,12 +1797,16 @@ def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomn
             stored_dealer_items = dealer_items.copy()
             live_path = stored_path.copy()
             live_path.append("dealer_shoot_self_live")
-            live_eval = eval(stored_you_items.copy(), stored_dealer_items.copy(), live - 1, blank, dealer_hp - 1, you_hp, live_path.copy(), live_randomness, None, 'you' if cuffed != 'you' else 'dealer', False, None, cuffed, [phoned[0] - 1, phoned[1]])
+            live_eval = eval(stored_you_items.copy(), stored_dealer_items.copy(), live - 1, blank, dealer_hp - 1,
+                             you_hp, live_path.copy(), live_randomness, None, 'you' if cuffed != 'you' else 'dealer',
+                             False, None, cuffed, [phoned[0] - 1, phoned[1]])
             live_ptree = deepcopy(possibility_tree)
             possibility_tree = []
             blank_path = stored_path.copy()
             blank_path.append("dealer_shoot_self_blank")
-            blank_eval = eval(stored_you_items.copy(), stored_dealer_items.copy(), live, blank - 1, dealer_hp, you_hp, blank_path.copy(), blank_randomness, None,'dealer', False, cuffed, prev_cuffed, [phoned[0] - 1, phoned[1]])
+            blank_eval = eval(stored_you_items.copy(), stored_dealer_items.copy(), live, blank - 1, dealer_hp, you_hp,
+                              blank_path.copy(), blank_randomness, None, 'dealer', False, cuffed, prev_cuffed,
+                              [phoned[0] - 1, phoned[1]])
             blank_ptree = deepcopy(possibility_tree)
             possibility_tree = live_ptree + blank_ptree
             return
@@ -1709,12 +1816,16 @@ def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomn
             stored_dealer_items = dealer_items.copy()
             live_path = stored_path.copy()
             live_path.append("you_shoot_self_live")
-            live_eval = eval(stored_you_items.copy(), stored_dealer_items.copy(), live - 1, blank, dealer_hp, you_hp - 1, live_path.copy(), live_randomness, None, 'dealer' if cuffed != 'dealer' else 'you', False, None, cuffed, [phoned[0] - 1, phoned[1]])
+            live_eval = eval(stored_you_items.copy(), stored_dealer_items.copy(), live - 1, blank, dealer_hp,
+                             you_hp - 1, live_path.copy(), live_randomness, None,
+                             'dealer' if cuffed != 'dealer' else 'you', False, None, cuffed, [phoned[0] - 1, phoned[1]])
             live_ptree = deepcopy(possibility_tree)
             possibility_tree = []
             blank_path = stored_path.copy()
             blank_path.append("you_shoot_self_blank")
-            blank_eval = eval(stored_you_items.copy(), stored_dealer_items.copy(), live, blank - 1, dealer_hp, you_hp, blank_path.copy(), blank_randomness, None,'you', False, cuffed, prev_cuffed, [phoned[0] - 1, phoned[1]])
+            blank_eval = eval(stored_you_items.copy(), stored_dealer_items.copy(), live, blank - 1, dealer_hp, you_hp,
+                              blank_path.copy(), blank_randomness, None, 'you', False, cuffed, prev_cuffed,
+                              [phoned[0] - 1, phoned[1]])
             blank_ptree = deepcopy(possibility_tree)
             possibility_tree = live_ptree + blank_ptree
             return
@@ -1725,12 +1836,18 @@ def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomn
             stored_dealer_items = dealer_items.copy()
             live_path = stored_path.copy()
             live_path.append("dealer_shoot_op_live")
-            live_eval = eval(stored_you_items.copy(), stored_dealer_items.copy(), (live - 1) if not inverted else live, blank if not inverted else (blank - 1), dealer_hp, you_hp - potential_damage, live_path.copy(), live_randomness, None, 'you' if cuffed != 'you' else 'dealer', False, None, cuffed, [phoned[0] - 1, phoned[1]])
+            live_eval = eval(stored_you_items.copy(), stored_dealer_items.copy(), (live - 1) if not inverted else live,
+                             blank if not inverted else (blank - 1), dealer_hp, you_hp - potential_damage,
+                             live_path.copy(), live_randomness, None, 'you' if cuffed != 'you' else 'dealer', False,
+                             None, cuffed, [phoned[0] - 1, phoned[1]])
             live_ptree = deepcopy(possibility_tree)
             possibility_tree = []
             blank_path = stored_path.copy()
             blank_path.append("dealer_shoot_op_blank")
-            blank_eval = eval(stored_you_items.copy(), stored_dealer_items.copy(), live if not inverted else (live - 1), (blank - 1) if not inverted else blank, dealer_hp, you_hp, blank_path.copy(), blank_randomness, None,'you' if cuffed != 'you' else 'dealer', False, None, cuffed, [phoned[0] - 1, phoned[1]])
+            blank_eval = eval(stored_you_items.copy(), stored_dealer_items.copy(), live if not inverted else (live - 1),
+                              (blank - 1) if not inverted else blank, dealer_hp, you_hp, blank_path.copy(),
+                              blank_randomness, None, 'you' if cuffed != 'you' else 'dealer', False, None, cuffed,
+                              [phoned[0] - 1, phoned[1]])
             blank_ptree = deepcopy(possibility_tree)
             possibility_tree = live_ptree + blank_ptree
             return
@@ -1740,18 +1857,23 @@ def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomn
             stored_dealer_items = dealer_items.copy()
             live_path = stored_path.copy()
             live_path.append("you_shoot_op_live")
-            live_eval = eval(stored_you_items.copy(), stored_dealer_items.copy(), live - 1, blank, dealer_hp - potential_damage, you_hp, live_path.copy(), live_randomness, None,'dealer' if cuffed != 'dealer' else 'you', False, None, cuffed, [phoned[0] - 1, phoned[1]])
+            live_eval = eval(stored_you_items.copy(), stored_dealer_items.copy(), live - 1, blank,
+                             dealer_hp - potential_damage, you_hp, live_path.copy(), live_randomness, None,
+                             'dealer' if cuffed != 'dealer' else 'you', False, None, cuffed, [phoned[0] - 1, phoned[1]])
             live_ptree = deepcopy(possibility_tree)
             possibility_tree = []
             blank_path = stored_path.copy()
             blank_path.append("you_shoot_op_blank")
-            blank_eval = eval(stored_you_items.copy(), stored_dealer_items.copy(), live, blank - 1, dealer_hp, you_hp, blank_path.copy(), blank_randomness, None,'dealer' if cuffed != 'dealer' else 'you', False, None, cuffed, [phoned[0] - 1, phoned[1]])
+            blank_eval = eval(stored_you_items.copy(), stored_dealer_items.copy(), live, blank - 1, dealer_hp, you_hp,
+                              blank_path.copy(), blank_randomness, None, 'dealer' if cuffed != 'dealer' else 'you',
+                              False, None, cuffed, [phoned[0] - 1, phoned[1]])
             blank_ptree = deepcopy(possibility_tree)
             possibility_tree = live_ptree + blank_ptree
             return
 
 
-def sim_dealer_action(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, choice = None, cuffed = None, prev_cuffed = None, inverted = False, guarantee = None, phoned = [0,'']):
+def sim_dealer_action(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, choice=None,
+                      cuffed=None, prev_cuffed=None, inverted=False, guarantee=None, phoned=[0, '']):
     if any("full_end_dealer_win" in item for item in path) or any("full_end_player_win" in item for item in path):
         if dealer_hp <= 0 or you_hp <= 0:
             return
@@ -1780,7 +1902,7 @@ def sim_dealer_action(you_items, dealer_items, live, blank, dealer_hp, you_hp, p
     is_blank_guaranteed = (blank_chance == 1.0) or guarantee == 'blank'
     if not phoned[1] or phoned[0] <= 0:
         live_chance = live / (live + blank)
-        blank_chance =  blank / (live + blank)
+        blank_chance = blank / (live + blank)
     elif phoned[0] == 1:
         live_chance = 1.0 if phoned[1] == 'Live' else 0.0
         blank_chance = 1.0 if phoned[1] == 'Blank' else 0.0
@@ -1791,20 +1913,21 @@ def sim_dealer_action(you_items, dealer_items, live, blank, dealer_hp, you_hp, p
         live_chance = (live) / (live + blank - 1)
         blank_chance = (blank - 1) / (live + blank - 1)
 
-
     if "Burner Phone" in dealer_items:
         new_dealer_items = dealer_items.copy()
         new_dealer_items.remove("Burner Phone")
         new_path = path.copy()
         new_path.append("dealer_phone")
-        sim_dealer_action(you_items, new_dealer_items.copy(), live, blank, dealer_hp, you_hp, new_path.copy(), randomness, choice, cuffed, prev_cuffed, inverted, guarantee, phoned)
+        sim_dealer_action(you_items, new_dealer_items.copy(), live, blank, dealer_hp, you_hp, new_path.copy(),
+                          randomness, choice, cuffed, prev_cuffed, inverted, guarantee, phoned)
         return
     elif "Cigarette Pack" in dealer_items and dealer_hp < maximum_hp:
         new_dealer_items = dealer_items.copy()
         new_dealer_items.remove("Cigarette Pack")
         new_path = path.copy()
         new_path.append("dealer_cig")
-        sim_dealer_action(you_items, new_dealer_items.copy(), live, blank, dealer_hp+1, you_hp, new_path.copy(),randomness, choice, cuffed, prev_cuffed, inverted, guarantee, phoned)
+        sim_dealer_action(you_items, new_dealer_items.copy(), live, blank, dealer_hp + 1, you_hp, new_path.copy(),
+                          randomness, choice, cuffed, prev_cuffed, inverted, guarantee, phoned)
         return
     elif "Cigarette Pack" in you_items and "Adrenaline" in dealer_items and dealer_hp < maximum_hp:
         new_dealer_items = dealer_items.copy()
@@ -1813,15 +1936,17 @@ def sim_dealer_action(you_items, dealer_items, live, blank, dealer_hp, you_hp, p
         new_you_items.remove("Cigarette Pack")
         new_path = path.copy()
         new_path.append("dealer_adrenaline_cig")
-        sim_dealer_action(new_you_items.copy(), new_dealer_items.copy(), live, blank, dealer_hp+1, you_hp, new_path.copy(),randomness, choice, cuffed, prev_cuffed, inverted, guarantee, phoned)
+        sim_dealer_action(new_you_items.copy(), new_dealer_items.copy(), live, blank, dealer_hp + 1, you_hp,
+                          new_path.copy(), randomness, choice, cuffed, prev_cuffed, inverted, guarantee, phoned)
         return
-
 
     if "Expired Medicine" in dealer_items and dealer_hp + 1 < maximum_hp and dealer_hp != 1:
-        split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, "exp", "dealer", live_chance, 1, 'turn', cuffed, prev_cuffed, inverted, phoned)
+        split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, "exp", "dealer", live_chance,
+              1, 'turn', cuffed, prev_cuffed, inverted, phoned)
         return
     elif "Expired Medicine" in you_items and "Adrenaline" in dealer_items and dealer_hp + 1 < maximum_hp and dealer_hp != 1:
-        split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, "exp", "dealer", live_chance, 1, 'other', cuffed, prev_cuffed, inverted, phoned)
+        split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, "exp", "dealer", live_chance,
+              1, 'other', cuffed, prev_cuffed, inverted, phoned)
         return
 
     if "Magnifying Glass" in dealer_items and not is_blank_guaranteed and not is_live_guaranteed and not choice:
@@ -1829,7 +1954,9 @@ def sim_dealer_action(you_items, dealer_items, live, blank, dealer_hp, you_hp, p
         new_dealer_items.remove("Magnifying Glass")
         new_path = path.copy()
         new_path.append("dealer_glass")
-        split(you_items, new_dealer_items.copy(), live, blank, dealer_hp, you_hp, new_path.copy(), randomness, 'dealer_shoot_choice_with_certainty','dealer', live_chance, 1, 'turn', cuffed, prev_cuffed, inverted, phoned)
+        split(you_items, new_dealer_items.copy(), live, blank, dealer_hp, you_hp, new_path.copy(), randomness,
+              'dealer_shoot_choice_with_certainty', 'dealer', live_chance, 1, 'turn', cuffed, prev_cuffed, inverted,
+              phoned)
         return
     elif "Magnifying Glass" in you_items and "Adrenaline" in dealer_items and not is_blank_guaranteed and not is_live_guaranteed and not choice:
         new_dealer_items = dealer_items.copy()
@@ -1838,28 +1965,35 @@ def sim_dealer_action(you_items, dealer_items, live, blank, dealer_hp, you_hp, p
         new_you_items.remove("Magnifying Glass")
         new_path = path.copy()
         new_path.append("dealer_adrenaline_glass")
-        split(you_items, new_dealer_items.copy(), live, blank, dealer_hp, you_hp, new_path.copy(), randomness, 'dealer_shoot_choice_with_certainty','dealer', live_chance, 1, 'turn', cuffed, prev_cuffed, inverted, phoned)
+        split(you_items, new_dealer_items.copy(), live, blank, dealer_hp, you_hp, new_path.copy(), randomness,
+              'dealer_shoot_choice_with_certainty', 'dealer', live_chance, 1, 'turn', cuffed, prev_cuffed, inverted,
+              phoned)
         return
 
-    if "Handcuffs" in dealer_items and not prev_cuffed == 'you' and not cuffed == 'you' and not (live == 1 and is_live_guaranteed) and not live == 0:
+    if "Handcuffs" in dealer_items and not prev_cuffed == 'you' and not cuffed == 'you' and not (
+            live == 1 and is_live_guaranteed) and not live == 0:
         new_dealer_items = dealer_items.copy()
         new_dealer_items.remove("Handcuffs")
         new_path = path.copy()
         new_path.append("dealer_cuff")
-        sim_dealer_action(you_items, new_dealer_items.copy(), live, blank, dealer_hp, you_hp, new_path.copy(), randomness, choice, 'you', None, inverted, guarantee, phoned)
+        sim_dealer_action(you_items, new_dealer_items.copy(), live, blank, dealer_hp, you_hp, new_path.copy(),
+                          randomness, choice, 'you', None, inverted, guarantee, phoned)
         return
-    elif "Handcuffs" in you_items and "Adrenaline" in dealer_items and not prev_cuffed == 'you' and not cuffed == 'you' and not (live == 1 and is_live_guaranteed) and not live == 0:
+    elif "Handcuffs" in you_items and "Adrenaline" in dealer_items and not prev_cuffed == 'you' and not cuffed == 'you' and not (
+            live == 1 and is_live_guaranteed) and not live == 0:
         new_dealer_items = dealer_items.copy()
         new_dealer_items.remove("Adrenaline")
         new_you_items = you_items.copy()
         new_you_items.remove("Handcuffs")
         new_path = path.copy()
         new_path.append("dealer_adrenaline_cuff")
-        sim_dealer_action(you_items, new_dealer_items.copy(), live, blank, dealer_hp, you_hp, new_path.copy(), randomness, choice, 'you', None, inverted, guarantee, phoned)
+        sim_dealer_action(you_items, new_dealer_items.copy(), live, blank, dealer_hp, you_hp, new_path.copy(),
+                          randomness, choice, 'you', None, inverted, guarantee, phoned)
         return
 
     if not is_blank_guaranteed and not is_live_guaranteed and not choice:
-        split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness,'dealer_shoot_choice', 'dealer', live_chance, 1, 'turn', cuffed, prev_cuffed, inverted, phoned)
+        split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, 'dealer_shoot_choice',
+              'dealer', live_chance, 1, 'turn', cuffed, prev_cuffed, inverted, phoned)
         return
 
     if choice == "opponent" or is_live_guaranteed:
@@ -1880,11 +2014,13 @@ def sim_dealer_action(you_items, dealer_items, live, blank, dealer_hp, you_hp, p
         else:
             potential_damage = 1
         if not is_live_guaranteed:
-            split(you_items,dealer_items,live,blank,dealer_hp,you_hp,path,randomness,'opponent','dealer',live_chance, potential_damage, 'turn', cuffed, prev_cuffed, inverted, phoned)
+            split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, 'opponent', 'dealer',
+                  live_chance, potential_damage, 'turn', cuffed, prev_cuffed, inverted, phoned)
             return
         else:
             path.append("dealer_shoot_op_live")
-            eval(you_items,dealer_items,live - 1,blank,dealer_hp,you_hp - potential_damage,path,randomness,None,'you' if cuffed != 'you' else 'dealer',False,None,cuffed,[phoned[0] - 1, phoned[1]])
+            eval(you_items, dealer_items, live - 1, blank, dealer_hp, you_hp - potential_damage, path, randomness, None,
+                 'you' if cuffed != 'you' else 'dealer', False, None, cuffed, [phoned[0] - 1, phoned[1]])
             return
     elif choice == "self" or is_blank_guaranteed:
         path.append("dealer_think_blank")
@@ -1893,7 +2029,10 @@ def sim_dealer_action(you_items, dealer_items, live, blank, dealer_hp, you_hp, p
             new_dealer_items.remove("Inverter")
             new_path = path.copy()
             new_path.append("dealer_invert")
-            sim_dealer_action(you_items, new_dealer_items.copy(), live if not is_blank_guaranteed else (live + 1), blank if not is_blank_guaranteed else (blank - 1), dealer_hp, you_hp,new_path.copy(), randomness, 'opponent', cuffed, prev_cuffed, True, 'live' if guarantee == 'blank' else None, phoned)
+            sim_dealer_action(you_items, new_dealer_items.copy(), live if not is_blank_guaranteed else (live + 1),
+                              blank if not is_blank_guaranteed else (blank - 1), dealer_hp, you_hp, new_path.copy(),
+                              randomness, 'opponent', cuffed, prev_cuffed, True,
+                              'live' if guarantee == 'blank' else None, phoned)
             return
         elif "Inverter" in you_items and "Adrenaline" in dealer_items:
             new_dealer_items = dealer_items.copy()
@@ -1902,24 +2041,36 @@ def sim_dealer_action(you_items, dealer_items, live, blank, dealer_hp, you_hp, p
             new_you_items.remove("Inverter")
             new_path = path.copy()
             new_path.append("dealer_adrenaline_invert")
-            sim_dealer_action(new_you_items.copy(), new_dealer_items.copy(), live if not is_blank_guaranteed else (live + 1), blank if not is_blank_guaranteed else (blank - 1), dealer_hp, you_hp,new_path.copy(), randomness, 'opponent', cuffed, prev_cuffed, True, 'live' if guarantee == 'blank' else None, [phoned[0], phoned[1]] if phoned[0] != 1 else [phoned[0], ('Live' if phoned[1] == 'Blank' else 'Blank')])
+            sim_dealer_action(new_you_items.copy(), new_dealer_items.copy(),
+                              live if not is_blank_guaranteed else (live + 1),
+                              blank if not is_blank_guaranteed else (blank - 1), dealer_hp, you_hp, new_path.copy(),
+                              randomness, 'opponent', cuffed, prev_cuffed, True,
+                              'live' if guarantee == 'blank' else None,
+                              [phoned[0], phoned[1]] if phoned[0] != 1 else [phoned[0], (
+                                  'Live' if phoned[1] == 'Blank' else 'Blank')])
             return
         elif "Beer" in dealer_items and live != 0:
-            split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, "beer", "dealer", live_chance, 1, 'turn', cuffed, prev_cuffed, inverted, phoned)
+            split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, "beer", "dealer",
+                  live_chance, 1, 'turn', cuffed, prev_cuffed, inverted, phoned)
             return
         elif "Beer" in you_items and "Adrenaline" in dealer_items and live != 0:
-            split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, "beer", "dealer", live_chance, 1, 'other', cuffed, prev_cuffed, inverted, phoned)
+            split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, "beer", "dealer",
+                  live_chance, 1, 'other', cuffed, prev_cuffed, inverted, phoned)
             return
         if not is_blank_guaranteed:
-            split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, 'self', 'dealer',live_chance, 1, 'turn', cuffed, prev_cuffed, inverted, phoned)
+            split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, 'self', 'dealer',
+                  live_chance, 1, 'turn', cuffed, prev_cuffed, inverted, phoned)
         else:
             path.append("dealer_shoot_self_blank")
-            eval(you_items,dealer_items,live,blank-1,dealer_hp,you_hp,path,randomness,None,'dealer',False,cuffed, prev_cuffed, [phoned[0] - 1, phoned[1]])
+            eval(you_items, dealer_items, live, blank - 1, dealer_hp, you_hp, path, randomness, None, 'dealer', False,
+                 cuffed, prev_cuffed, [phoned[0] - 1, phoned[1]])
         return
     path.append("dealer_sim_here")
     return
 
-def search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, passed, prev_cuffed = None, cuffed = None, phoned = [0,'']):
+
+def search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, passed,
+           prev_cuffed=None, cuffed=None, phoned=[0, '']):
     global possibility_tree
     starting_ptree = deepcopy(possibility_tree)
     possibility_tree = []
@@ -1929,7 +2080,7 @@ def search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, random
 
     if not phoned[1] or phoned[0] <= 0:
         live_chance = live / (live + blank)
-        blank_chance =  blank / (live + blank)
+        blank_chance = blank / (live + blank)
     elif phoned[0] == 1:
         live_chance = 1.0 if phoned[1] == 'Live' else 0.0
         blank_chance = 1.0 if phoned[1] == 'Blank' else 0.0
@@ -1951,21 +2102,25 @@ def search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, random
         new_you_items.remove("Handcuffs")
         new_path = path.copy()
         new_path.append("you_cuff")
-        eval(new_you_items.copy(),dealer_items,live,blank,dealer_hp,you_hp,new_path.copy(),randomness,guarantee,'you',False,'dealer',None, phoned)
+        eval(new_you_items.copy(), dealer_items, live, blank, dealer_hp, you_hp, new_path.copy(), randomness, guarantee,
+             'you', False, 'dealer', None, phoned)
         alpha_ptree = deepcopy(possibility_tree)
         possibility_tree = []
         new_passed = passed.copy()
         new_passed.append("cuffs")
-        search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, new_passed, prev_cuffed, cuffed, phoned)
+        search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, new_passed,
+               prev_cuffed, cuffed, phoned)
         beta_ptree = deepcopy(possibility_tree)
         action_done = True
     elif "Magnifying Glass" in you_items and not "glass" in passed:
-        split(you_items,dealer_items,live,blank,dealer_hp,you_hp,path,randomness,"glass", "you", live / (live + blank), 1, 'turn', cuffed, prev_cuffed, False, phoned)
+        split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, "glass", "you",
+              live / (live + blank), 1, 'turn', cuffed, prev_cuffed, False, phoned)
         alpha_ptree = deepcopy(possibility_tree)
         possibility_tree = []
         new_passed = passed.copy()
         new_passed.append("glass")
-        search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, new_passed, prev_cuffed, cuffed, phoned)
+        search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, new_passed,
+               prev_cuffed, cuffed, phoned)
         beta_ptree = deepcopy(possibility_tree)
         action_done = True
     elif "Inverter" in you_items and not "invert" in passed:
@@ -1975,18 +2130,26 @@ def search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, random
             if guarantee == 'live':
                 new_path = path.copy()
                 new_path.append("you_invert_live")
-                eval(new_you_items.copy(),dealer_items,live-1,blank+1,dealer_hp,you_hp,new_path.copy(),randomness,'blank','you',False,cuffed, prev_cuffed, [phoned[0], phoned[1]] if phoned[0] != 1 else [phoned[0], ('Live' if phoned[1] == 'Blank' else 'Blank')])
+                eval(new_you_items.copy(), dealer_items, live - 1, blank + 1, dealer_hp, you_hp, new_path.copy(),
+                     randomness, 'blank', 'you', False, cuffed, prev_cuffed,
+                     [phoned[0], phoned[1]] if phoned[0] != 1 else [phoned[0],
+                                                                    ('Live' if phoned[1] == 'Blank' else 'Blank')])
             elif guarantee == 'blank':
                 new_path = path.copy()
                 new_path.append("you_invert_blank")
-                eval(new_you_items.copy(),dealer_items,live+1,blank-1,dealer_hp,you_hp,new_path.copy(),randomness,'live','you',False,cuffed, prev_cuffed, [phoned[0], phoned[1]] if phoned[0] != 1 else [phoned[0], ('Live' if phoned[1] == 'Blank' else 'Blank')])
+                eval(new_you_items.copy(), dealer_items, live + 1, blank - 1, dealer_hp, you_hp, new_path.copy(),
+                     randomness, 'live', 'you', False, cuffed, prev_cuffed,
+                     [phoned[0], phoned[1]] if phoned[0] != 1 else [phoned[0],
+                                                                    ('Live' if phoned[1] == 'Blank' else 'Blank')])
         else:
-            split(you_items,dealer_items,live,blank,dealer_hp,you_hp,path,randomness,"invert", "you", live_chance, 1, 'turn', cuffed, prev_cuffed,False, phoned)
+            split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, "invert", "you",
+                  live_chance, 1, 'turn', cuffed, prev_cuffed, False, phoned)
         alpha_ptree = deepcopy(possibility_tree)
         possibility_tree = []
         new_passed = passed.copy()
         new_passed.append("invert")
-        search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, new_passed, prev_cuffed, cuffed, phoned)
+        search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, new_passed,
+               prev_cuffed, cuffed, phoned)
         beta_ptree = deepcopy(possibility_tree)
         action_done = True
     elif "Beer" in you_items and not "beer" in passed:
@@ -1996,16 +2159,20 @@ def search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, random
             new_you_items = you_items.copy()
             new_you_items.remove("Beer")
             if guarantee == 'live':
-                eval(new_you_items,dealer_items,live - 1,blank,dealer_hp,you_hp,newpath,randomness,None,'you', False, cuffed, prev_cuffed, [phoned[0] - 1, phoned[1]])
+                eval(new_you_items, dealer_items, live - 1, blank, dealer_hp, you_hp, newpath, randomness, None, 'you',
+                     False, cuffed, prev_cuffed, [phoned[0] - 1, phoned[1]])
             elif guarantee == 'blank':
-                eval(new_you_items,dealer_items,live,blank - 1,dealer_hp,you_hp,newpath,randomness,None,'you', False, cuffed, prev_cuffed, [phoned[0] - 1, phoned[1]])
+                eval(new_you_items, dealer_items, live, blank - 1, dealer_hp, you_hp, newpath, randomness, None, 'you',
+                     False, cuffed, prev_cuffed, [phoned[0] - 1, phoned[1]])
         else:
-            split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, "beer", "you", live_chance, 1, 'turn', cuffed, prev_cuffed, False, phoned)
+            split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, "beer", "you", live_chance,
+                  1, 'turn', cuffed, prev_cuffed, False, phoned)
         alpha_ptree = deepcopy(possibility_tree)
         possibility_tree = []
         new_passed = passed.copy()
         new_passed.append("beer")
-        search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, new_passed, prev_cuffed, cuffed, phoned)
+        search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, new_passed,
+               prev_cuffed, cuffed, phoned)
         beta_ptree = deepcopy(possibility_tree)
         action_done = True
     elif "Cigarette Pack" in you_items and not "cig" in passed and you_hp < maximum_hp:
@@ -2013,34 +2180,41 @@ def search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, random
         new_you_items.remove("Cigarette Pack")
         new_path = path.copy()
         new_path.append("you_cig")
-        eval(new_you_items.copy(),dealer_items,live,blank,dealer_hp,you_hp+1,new_path.copy(),randomness,guarantee,'you', False, cuffed, prev_cuffed, phoned)
+        eval(new_you_items.copy(), dealer_items, live, blank, dealer_hp, you_hp + 1, new_path.copy(), randomness,
+             guarantee, 'you', False, cuffed, prev_cuffed, phoned)
         alpha_ptree = deepcopy(possibility_tree)
         possibility_tree = []
         new_passed = passed.copy()
         new_passed.append("cig")
-        search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, new_passed, prev_cuffed, cuffed, phoned)
+        search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, new_passed,
+               prev_cuffed, cuffed, phoned)
         beta_ptree = deepcopy(possibility_tree)
         action_done = True
     elif "Expired Medicine" in you_items and not "exp" in passed and you_hp < maximum_hp:
-        split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, "exp", "you", live_chance, 1, 'turn', cuffed, prev_cuffed, False, phoned)
+        split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, "exp", "you", live_chance, 1,
+              'turn', cuffed, prev_cuffed, False, phoned)
         alpha_ptree = deepcopy(possibility_tree)
         possibility_tree = []
         new_passed = passed.copy()
         new_passed.append("exp")
-        search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, new_passed, prev_cuffed, cuffed, phoned)
+        search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, new_passed,
+               prev_cuffed, cuffed, phoned)
         beta_ptree = deepcopy(possibility_tree)
         action_done = True
     elif "Adrenaline" in you_items and not "adrenaline" in passed:
         if dealer_items:
-            adrenaline(you_items,dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, passed, prev_cuffed, cuffed, phoned)
+            adrenaline(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, passed,
+                       prev_cuffed, cuffed, phoned)
             return
         else:
             newpassed = passed.copy()
             newpassed.append("adrenaline")
-            search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, newpassed, prev_cuffed, cuffed, phoned)
+            search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, newpassed,
+                   prev_cuffed, cuffed, phoned)
             return
     else:
-        eval(you_items,dealer_items,live,blank,dealer_hp,you_hp,path,randomness,guarantee,'you', True, cuffed, prev_cuffed, phoned)
+        eval(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, 'you', True, cuffed,
+             prev_cuffed, phoned)
         return
 
     a_full_prob = 0.0
@@ -2055,11 +2229,11 @@ def search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, random
     a_n_prob = 0.0
     for i in range(len(alpha_ptree)):
         if alpha_ptree[i][0][-1] == "full_end_dealer_win":
-            a_d_prob += (alpha_ptree[i][1] * (1/ a_full_prob))
+            a_d_prob += (alpha_ptree[i][1] * (1 / a_full_prob))
         elif alpha_ptree[i][0][-1] == "full_end_player_win":
-            a_y_prob += (alpha_ptree[i][1] * (1/ a_full_prob))
+            a_y_prob += (alpha_ptree[i][1] * (1 / a_full_prob))
         elif alpha_ptree[i][0][-1] == "full_end_no_win":
-            a_n_prob += (alpha_ptree[i][1] * (1/ a_full_prob))
+            a_n_prob += (alpha_ptree[i][1] * (1 / a_full_prob))
 
     b_full_prob = 0.0
     for i in range(len(beta_ptree)):
@@ -2073,31 +2247,35 @@ def search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, random
     b_n_prob = 0.0
     for i in range(len(beta_ptree)):
         if beta_ptree[i][0][-1] == "full_end_dealer_win":
-            b_d_prob += (beta_ptree[i][1] * (1/ b_full_prob))
+            b_d_prob += (beta_ptree[i][1] * (1 / b_full_prob))
         elif beta_ptree[i][0][-1] == "full_end_player_win":
-            b_y_prob += (beta_ptree[i][1] * (1/ b_full_prob))
+            b_y_prob += (beta_ptree[i][1] * (1 / b_full_prob))
         elif beta_ptree[i][0][-1] == "full_end_no_win":
-            b_n_prob += (beta_ptree[i][1] * (1/ b_full_prob))
+            b_n_prob += (beta_ptree[i][1] * (1 / b_full_prob))
 
-    if a_y_prob + a_n_prob > b_y_prob + b_n_prob and not isclose(a_y_prob + a_n_prob, b_y_prob + b_n_prob, rel_tol=1e-15, abs_tol=0.0):
+    if a_y_prob + a_n_prob > b_y_prob + b_n_prob and not isclose(a_y_prob + a_n_prob, b_y_prob + b_n_prob,
+                                                                 rel_tol=1e-15, abs_tol=0.0):
         possibility_tree = starting_ptree + alpha_ptree
-    elif b_y_prob + b_n_prob > a_y_prob + a_n_prob and not isclose(a_y_prob + a_n_prob, b_y_prob + b_n_prob, rel_tol=1e-15, abs_tol=0.0):
+    elif b_y_prob + b_n_prob > a_y_prob + a_n_prob and not isclose(a_y_prob + a_n_prob, b_y_prob + b_n_prob,
+                                                                   rel_tol=1e-15, abs_tol=0.0):
         possibility_tree = starting_ptree + beta_ptree
     else:
         alpha_rating = 0
         for i in range(len(alpha_ptree)):
-            if (alpha_ptree[i][1] * (1/ a_full_prob)) != 0.0:
-                alpha_rating += (alpha_ptree[i][2] - alpha_ptree[i][3]) / (alpha_ptree[i][1] * (1/ a_full_prob))
+            if (alpha_ptree[i][1] * (1 / a_full_prob)) != 0.0:
+                alpha_rating += (alpha_ptree[i][2] - alpha_ptree[i][3]) / (alpha_ptree[i][1] * (1 / a_full_prob))
         beta_rating = 0
         for i in range(len(beta_ptree)):
-            if (beta_ptree[i][1] * (1/ b_full_prob)) != 0.0:
-                beta_rating += (beta_ptree[i][2] - beta_ptree[i][3]) / (beta_ptree[i][1] * (1/ b_full_prob))
+            if (beta_ptree[i][1] * (1 / b_full_prob)) != 0.0:
+                beta_rating += (beta_ptree[i][2] - beta_ptree[i][3]) / (beta_ptree[i][1] * (1 / b_full_prob))
         if alpha_rating > beta_rating and not isclose(alpha_rating, beta_rating, rel_tol=1e-12, abs_tol=0.0):
             possibility_tree = starting_ptree + alpha_ptree
         else:
             possibility_tree = starting_ptree + beta_ptree
 
-def adrenaline(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, passed, prev_cuffed = None, cuffed = None, phoned = [0,'']):
+
+def adrenaline(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, passed,
+               prev_cuffed=None, cuffed=None, phoned=[0, '']):
     global possibility_tree
     a_starting_ptree = deepcopy(possibility_tree)
     possibility_tree = []
@@ -2106,7 +2284,7 @@ def adrenaline(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, ra
 
     if not phoned[1] or phoned[0] <= 0:
         live_chance = live / (live + blank)
-        blank_chance =  blank / (live + blank)
+        blank_chance = blank / (live + blank)
     elif phoned[0] == 1:
         live_chance = 1.0 if phoned[1] == 'Live' else 0.0
         blank_chance = 1.0 if phoned[1] == 'Blank' else 0.0
@@ -2124,21 +2302,25 @@ def adrenaline(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, ra
         a_new_dealer_items.remove("Handcuffs")
         new_path = path.copy()
         new_path.append("you_adrenaline_cuff")
-        eval(a_new_you_items.copy(),a_new_dealer_items.copy(),live,blank,dealer_hp,you_hp,new_path.copy(),randomness,guarantee,'you',False,'dealer',None,phoned)
+        eval(a_new_you_items.copy(), a_new_dealer_items.copy(), live, blank, dealer_hp, you_hp, new_path.copy(),
+             randomness, guarantee, 'you', False, 'dealer', None, phoned)
         a_alpha_ptree = deepcopy(possibility_tree)
         possibility_tree = []
         new_passed = passed.copy()
         new_passed.append("cuffs")
-        adrenaline(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, new_passed, prev_cuffed, cuffed, phoned)
+        adrenaline(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, new_passed,
+                   prev_cuffed, cuffed, phoned)
         a_beta_ptree = deepcopy(possibility_tree)
         a_action_done = True
     elif "Magnifying Glass" in dealer_items and not "glass" in passed:
-        split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, "glass", "you", live_chance, 1, 'other', cuffed, prev_cuffed, False, phoned)
+        split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, "glass", "you", live_chance, 1,
+              'other', cuffed, prev_cuffed, False, phoned)
         a_alpha_ptree = deepcopy(possibility_tree)
         possibility_tree = []
         new_passed = passed.copy()
         new_passed.append("glass")
-        adrenaline(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, new_passed, prev_cuffed, cuffed, phoned)
+        adrenaline(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, new_passed,
+                   prev_cuffed, cuffed, phoned)
         a_beta_ptree = deepcopy(possibility_tree)
         a_action_done = True
     elif "Inverter" in dealer_items and not "invert" in passed:
@@ -2150,18 +2332,26 @@ def adrenaline(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, ra
             if guarantee == 'live':
                 new_path = path.copy()
                 new_path.append("you_adrenaline_invert_live")
-                eval(a_new_you_items.copy(), a_new_dealer_items.copy(), live - 1, blank + 1, dealer_hp, you_hp, new_path.copy(),randomness, 'blank', 'you', False, cuffed, prev_cuffed, [phoned[0], phoned[1]] if phoned[0] != 1 else [phoned[0], ('Live' if phoned[1] == 'Blank' else 'Blank')])
+                eval(a_new_you_items.copy(), a_new_dealer_items.copy(), live - 1, blank + 1, dealer_hp, you_hp,
+                     new_path.copy(), randomness, 'blank', 'you', False, cuffed, prev_cuffed,
+                     [phoned[0], phoned[1]] if phoned[0] != 1 else [phoned[0],
+                                                                    ('Live' if phoned[1] == 'Blank' else 'Blank')])
             elif guarantee == 'blank':
                 new_path = path.copy()
                 new_path.append("you_adrenaline_invert_blank")
-                eval(a_new_you_items.copy(), a_new_dealer_items.copy(), live + 1, blank - 1, dealer_hp, you_hp, new_path.copy(),randomness, 'live', 'you', False, cuffed, prev_cuffed, [phoned[0], phoned[1]] if phoned[0] != 1 else [phoned[0], ('Live' if phoned[1] == 'Blank' else 'Blank')])
+                eval(a_new_you_items.copy(), a_new_dealer_items.copy(), live + 1, blank - 1, dealer_hp, you_hp,
+                     new_path.copy(), randomness, 'live', 'you', False, cuffed, prev_cuffed,
+                     [phoned[0], phoned[1]] if phoned[0] != 1 else [phoned[0],
+                                                                    ('Live' if phoned[1] == 'Blank' else 'Blank')])
         else:
-            split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, "invert", "you",live_chance, 1, 'other', cuffed, prev_cuffed, False, phoned)
+            split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, "invert", "you",
+                  live_chance, 1, 'other', cuffed, prev_cuffed, False, phoned)
         a_alpha_ptree = deepcopy(possibility_tree)
         possibility_tree = []
         new_passed = passed.copy()
         new_passed.append("invert")
-        search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, new_passed,prev_cuffed, cuffed, phoned)
+        search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, new_passed,
+               prev_cuffed, cuffed, phoned)
         a_beta_ptree = deepcopy(possibility_tree)
         a_action_done = True
     elif "Beer" in dealer_items and not "beer" in passed:
@@ -2173,16 +2363,20 @@ def adrenaline(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, ra
             a_new_you_items = you_items.copy()
             a_new_you_items.remove("Adrenaline")
             if guarantee == 'live':
-                eval(a_new_you_items, a_new_dealer_items, live - 1, blank, dealer_hp, you_hp, a_newpath, randomness, None, 'you', False, cuffed, prev_cuffed, [phoned[0] - 1, phoned[1]])
+                eval(a_new_you_items, a_new_dealer_items, live - 1, blank, dealer_hp, you_hp, a_newpath, randomness,
+                     None, 'you', False, cuffed, prev_cuffed, [phoned[0] - 1, phoned[1]])
             elif guarantee == 'blank':
-                eval(a_new_you_items, a_new_dealer_items, live, blank - 1, dealer_hp, you_hp, a_newpath, randomness, None, 'you', False, cuffed, prev_cuffed, [phoned[0] - 1, phoned[1]])
+                eval(a_new_you_items, a_new_dealer_items, live, blank - 1, dealer_hp, you_hp, a_newpath, randomness,
+                     None, 'you', False, cuffed, prev_cuffed, [phoned[0] - 1, phoned[1]])
         else:
-            split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, "beer", "you", live_chance, 1, 'other', cuffed, prev_cuffed, False, phoned)
+            split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, "beer", "you", live_chance,
+                  1, 'other', cuffed, prev_cuffed, False, phoned)
         a_alpha_ptree = deepcopy(possibility_tree)
         possibility_tree = []
         new_passed = passed.copy()
         new_passed.append("beer")
-        adrenaline(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, new_passed, prev_cuffed, cuffed, phoned)
+        adrenaline(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, new_passed,
+                   prev_cuffed, cuffed, phoned)
         a_beta_ptree = deepcopy(possibility_tree)
         a_action_done = True
     elif "Cigarette Pack" in dealer_items and not "cig" in passed and you_hp < maximum_hp:
@@ -2192,25 +2386,30 @@ def adrenaline(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, ra
         a_new_dealer_items.remove("Cigarette Pack")
         new_path = path.copy()
         new_path.append("you_adrenaline_cig")
-        eval(a_new_you_items.copy(),a_new_dealer_items.copy(),live,blank,dealer_hp,you_hp+1,new_path.copy(),randomness,guarantee,'you', False, cuffed, prev_cuffed, phoned)
+        eval(a_new_you_items.copy(), a_new_dealer_items.copy(), live, blank, dealer_hp, you_hp + 1, new_path.copy(),
+             randomness, guarantee, 'you', False, cuffed, prev_cuffed, phoned)
         a_alpha_ptree = deepcopy(possibility_tree)
         possibility_tree = []
         new_passed = passed.copy()
         new_passed.append("cig")
-        search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, new_passed, prev_cuffed, cuffed, phoned)
+        search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, new_passed,
+               prev_cuffed, cuffed, phoned)
         a_beta_ptree = deepcopy(possibility_tree)
         a_action_done = True
     elif "Expired Medicine" in dealer_items and not "exp" in passed and you_hp < maximum_hp:
-        split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, "exp", "you", live_chance, 1, 'other', cuffed, prev_cuffed, False, phoned)
+        split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, "exp", "you", live_chance, 1,
+              'other', cuffed, prev_cuffed, False, phoned)
         a_alpha_ptree = deepcopy(possibility_tree)
         possibility_tree = []
         new_passed = passed.copy()
         new_passed.append("exp")
-        search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, new_passed, prev_cuffed, cuffed, phoned)
+        search(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, new_passed,
+               prev_cuffed, cuffed, phoned)
         a_beta_ptree = deepcopy(possibility_tree)
         a_action_done = True
     else:
-        eval(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, 'you', True, cuffed, prev_cuffed, phoned)
+        eval(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, 'you', True, cuffed,
+             prev_cuffed, phoned)
         return
 
     a_a_full_prob = 0.0
@@ -2249,19 +2448,24 @@ def adrenaline(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, ra
         elif a_beta_ptree[i][0][-1] == "full_end_no_win":
             a_b_n_prob += (a_beta_ptree[i][1] * (1 / a_b_full_prob))
 
-    if a_a_y_prob + a_a_n_prob > a_b_y_prob + a_b_n_prob and not isclose(a_a_y_prob + a_a_n_prob, a_b_y_prob + a_b_n_prob, rel_tol=1e-15, abs_tol=0.0):
+    if a_a_y_prob + a_a_n_prob > a_b_y_prob + a_b_n_prob and not isclose(a_a_y_prob + a_a_n_prob,
+                                                                         a_b_y_prob + a_b_n_prob, rel_tol=1e-15,
+                                                                         abs_tol=0.0):
         possibility_tree = a_starting_ptree + a_alpha_ptree
-    elif a_b_y_prob + a_b_n_prob > a_a_y_prob + a_a_n_prob and not isclose(a_a_y_prob + a_a_n_prob, a_b_y_prob + a_b_n_prob, rel_tol=1e-15, abs_tol=0.0):
+    elif a_b_y_prob + a_b_n_prob > a_a_y_prob + a_a_n_prob and not isclose(a_a_y_prob + a_a_n_prob,
+                                                                           a_b_y_prob + a_b_n_prob, rel_tol=1e-15,
+                                                                           abs_tol=0.0):
         possibility_tree = a_starting_ptree + a_beta_ptree
     else:
         a_alpha_rating = 0
         for i in range(len(a_alpha_ptree)):
-            if (a_alpha_ptree[i][1] * (1/ a_a_full_prob)) != 0.0:
-                a_alpha_rating += (a_alpha_ptree[i][2] - a_alpha_ptree[i][3]) / (a_alpha_ptree[i][1] * (1/ a_a_full_prob))
+            if (a_alpha_ptree[i][1] * (1 / a_a_full_prob)) != 0.0:
+                a_alpha_rating += (a_alpha_ptree[i][2] - a_alpha_ptree[i][3]) / (
+                            a_alpha_ptree[i][1] * (1 / a_a_full_prob))
         a_beta_rating = 0
         for i in range(len(a_beta_ptree)):
-            if (a_beta_ptree[i][1] * (1/ a_b_full_prob)) != 0.0:
-                a_beta_rating += (a_beta_ptree[i][2] - a_beta_ptree[i][3]) / (a_beta_ptree[i][1] * (1/ a_b_full_prob))
+            if (a_beta_ptree[i][1] * (1 / a_b_full_prob)) != 0.0:
+                a_beta_rating += (a_beta_ptree[i][2] - a_beta_ptree[i][3]) / (a_beta_ptree[i][1] * (1 / a_b_full_prob))
         if a_alpha_rating > a_beta_rating and not isclose(a_alpha_rating, a_beta_rating, rel_tol=1e-12, abs_tol=0.0):
             possibility_tree = a_starting_ptree + a_alpha_ptree
         else:
