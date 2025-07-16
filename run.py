@@ -69,8 +69,8 @@ class ActionWindow(tk.Toplevel):
 
         self.action_text_map = {
             "IC": "Invalid configuration!",
-            "SR_you_shoot_self": "There is a higher chance that the shell is blank. Shoot yourself. Click which shell occurred.",
-            "SR_you_shoot_op": "There is a higher or equal chance that the shell is live. Shoot the dealer. Click which shell occurred.",
+            "SR_you_shoot_self": "Shoot yourself. Click which shell occurred.",
+            "SR_you_shoot_op": "Shoot the dealer. Click which shell occurred.",
             "SR_dealer_shoot_op": "Which shell did the dealer shoot at you?",
             "SR_dealer_shoot_self": "Which shell did the dealer shoot at itself?",
             "CR_dealer_shoot": "Who did the dealer shoot?",
@@ -81,7 +81,7 @@ class ActionWindow(tk.Toplevel):
             "you_shoot_self_blank": "The shell is guaranteed to be blank. Shoot yourself.",
             "dealer_shoot_op_live": "The Dealer will shoot you with a guaranteed live round.",
             "dealer_shoot_self_blank": "The Dealer will shoot itself with a guaranteed blank round.",
-            "you_saw": "There is a higher or equal chance that the shell is live. Use the hand saw.",
+            "you_saw": "Use the hand saw.",
             "HR_dealer_saw": "Did the dealer use the hand saw?",
             "HR_dealer_adrenaline_saw": "Did the dealer use adrenaline to steal your hand saw?",
             "dealer_saw": "The dealer will use the hand saw.",
@@ -131,13 +131,13 @@ class ActionWindow(tk.Toplevel):
         prob_text_frame = tk.Frame(self)
         prob_text_frame.pack(fill="x", padx=20, pady=(20, 5))
 
-        self.you_label = tk.Label(prob_text_frame, text="You: {:.1%}".format(you_prob), anchor="w")
+        self.you_label = tk.Label(prob_text_frame, text="You: {:.1%}".format(you_prob), anchor="w", fg="green")
         self.you_label.grid(row=0, column=0, sticky="w", padx=5)
 
-        self.none_label = tk.Label(prob_text_frame, text="None: {:.1%}".format(none_prob), anchor="center")
+        self.none_label = tk.Label(prob_text_frame, text="None: {:.1%}".format(none_prob), anchor="center", fg="yellow")
         self.none_label.grid(row=0, column=1, sticky="ew", padx=5)
 
-        self.dealer_label = tk.Label(prob_text_frame, text="Dealer: {:.1%}".format(dealer_prob), anchor="e")
+        self.dealer_label = tk.Label(prob_text_frame, text="Dealer: {:.1%}".format(dealer_prob), anchor="e", fg="red")
         self.dealer_label.grid(row=0, column=2, sticky="e", padx=5)
 
         prob_text_frame.grid_columnconfigure(0, weight=1)
@@ -273,10 +273,9 @@ class ActionWindow(tk.Toplevel):
 
 
 class DraggableItem:
-    def __init__(self, canvas, x, y, name, image_path):
+    def __init__(self, canvas, x, y, name):
         self.canvas = canvas
         self.name = name
-        self.image_path = image_path
 
         self.width = 80
         self.height = 80
@@ -438,15 +437,15 @@ class UIApp(tk.Tk):
     def create_left_panel(self):
         self.item_buttons = []
         self.item_data = [
-            {"name": "Burner Phone", "image": "PH"},
-            {"name": "Inverter", "image": "PH"},
-            {"name": "Expired Medicine", "image": "PH"},
-            {"name": "Beer", "image": "PH"},
-            {"name": "Adrenaline", "image": "PH"},
-            {"name": "Cigarette Pack", "image": "PH"},
-            {"name": "Hand Saw", "image": "PH"},
-            {"name": "Handcuffs", "image": "PH"},
-            {"name": "Magnifying Glass", "image": "PH"}
+            {"name": "Burner Phone"},
+            {"name": "Inverter"},
+            {"name": "Expired Medicine"},
+            {"name": "Beer"},
+            {"name": "Adrenaline"},
+            {"name": "Cigarette Pack"},
+            {"name": "Hand Saw"},
+            {"name": "Handcuffs"},
+            {"name": "Magnifying Glass"}
         ]
         for i, data in enumerate(self.item_data):
             btn = Button(self.left_frame, text=data["name"],
@@ -455,7 +454,7 @@ class UIApp(tk.Tk):
             self.item_buttons.append(btn)
 
     def create_draggable(self, item_data):
-        new_item = DraggableItem(self.canvas, 50, 50, item_data["name"], item_data["image"])
+        new_item = DraggableItem(self.canvas, 50, 50, item_data["name"])
         self.draggable_items.append(new_item)
 
     def create_right_panel(self):
@@ -1282,7 +1281,7 @@ class UIApp(tk.Tk):
 
 
 def eval(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, turn,
-         force_dismiss_search=False, cuffed=None, prev_cuffed=None, phoned=[0, '']):
+         force_dismiss_search=False, cuffed=None, prev_cuffed=None, phoned=[0, ''], choice=None):
     if any("full_end_dealer_win" in item for item in path) or any("full_end_player_win" in item for item in path):
         if dealer_hp <= 0 or you_hp <= 0:
             return
@@ -1325,9 +1324,9 @@ def eval(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomne
 
     is_live_likely = live_chance > blank_chance
     is_live_guaranteed = (live_chance == 1.0 or guarantee == 'live' or (
-                phoned[1] == 'Live' and phoned[0] == 1)) and not 'likely_live' in path[-1]
+            phoned[1] == 'Live' and phoned[0] == 1)) and not 'likely_live' in path[-1]
     is_blank_guaranteed = (blank_chance == 1.0 or guarantee == 'blank' or (
-                phoned[1] == 'Blank' and phoned[0] == 1)) and not 'likely_blank' in path[-1]
+            phoned[1] == 'Blank' and phoned[0] == 1)) and not 'likely_blank' in path[-1]
     is_blank_likely = blank_chance < live_chance
     equally_likely = live_chance == blank_chance
 
@@ -1341,7 +1340,6 @@ def eval(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomne
                phoned)
         return path
 
-    # finalizers
     if is_live_guaranteed:
         if "Hand Saw" in you_items:
             potential_damage = 2
@@ -1361,7 +1359,7 @@ def eval(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomne
                           [phoned[0] - 1, phoned[1]])
             return result
 
-    if "Hand Saw" in you_items and live_chance >= blank_chance:
+    if "Hand Saw" in you_items and ((live_chance > blank_chance) or choice == "Live"):
         potential_damage = 2
         you_items.remove("Hand Saw")
         path.append("you_saw")
@@ -1374,14 +1372,19 @@ def eval(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomne
                       cuffed, prev_cuffed, [phoned[0] - 1, phoned[1]])
         return result
 
-    if (live_chance >= blank_chance or 'likely_blank' in path[-1]) and not 'likely_live' in path[-1]:
+    if (((live_chance > blank_chance) or choice == "Live") or 'likely_blank' in path[-1]) and not 'likely_live' in path[
+        -1]:
         result = split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, 'opponent', 'you',
                        live_chance, potential_damage, 'turn', cuffed, prev_cuffed, False, phoned)
         return result
-    else:
+    elif choice == "Blank" or (blank_chance > live_chance):
         result = split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, 'self', 'you',
                        live_chance, potential_damage, 'turn', cuffed, prev_cuffed, False, phoned)
         return result
+    else:
+        choose(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, turn,
+               force_dismiss_search, cuffed, prev_cuffed, phoned)
+        return
 
 
 def split(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, action, turn, live_odds,
@@ -2461,7 +2464,7 @@ def adrenaline(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, ra
         for i in range(len(a_alpha_ptree)):
             if (a_alpha_ptree[i][1] * (1 / a_a_full_prob)) != 0.0:
                 a_alpha_rating += (a_alpha_ptree[i][2] - a_alpha_ptree[i][3]) / (
-                            a_alpha_ptree[i][1] * (1 / a_a_full_prob))
+                        a_alpha_ptree[i][1] * (1 / a_a_full_prob))
         a_beta_rating = 0
         for i in range(len(a_beta_ptree)):
             if (a_beta_ptree[i][1] * (1 / a_b_full_prob)) != 0.0:
@@ -2470,6 +2473,88 @@ def adrenaline(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, ra
             possibility_tree = a_starting_ptree + a_alpha_ptree
         else:
             possibility_tree = a_starting_ptree + a_beta_ptree
+
+
+def choose(you_items, dealer_items, live, blank, dealer_hp, you_hp, path, randomness, guarantee, turn,
+           force_dismiss_search=False, cuffed=None, prev_cuffed=None, phoned=[0, '']):
+    global possibility_tree
+    c_starting_ptree = deepcopy(possibility_tree)
+    possibility_tree = []
+
+    c_alpha_new_you_items = you_items.copy()
+    c_alpha_new_dealer_items = dealer_items.copy()
+    c_alpha_new_path = path.copy()
+    eval(c_alpha_new_you_items.copy(), c_alpha_new_dealer_items.copy(), live, blank, dealer_hp, you_hp,
+         c_alpha_new_path.copy(), randomness, guarantee, turn, force_dismiss_search, cuffed, prev_cuffed, phoned,
+         "Live")
+    c_alpha_ptree = deepcopy(possibility_tree)
+    possibility_tree = []
+    c_beta_new_you_items = you_items.copy()
+    c_beta_new_dealer_items = dealer_items.copy()
+    c_beta_new_path = path.copy()
+    eval(c_beta_new_you_items.copy(), c_beta_new_dealer_items.copy(), live, blank, dealer_hp, you_hp,
+         c_beta_new_path.copy(), randomness, guarantee, turn,
+         force_dismiss_search, cuffed, prev_cuffed, phoned, "Blank")
+    c_beta_ptree = deepcopy(possibility_tree)
+
+    c_a_full_prob = 0.0
+    for i in range(len(c_alpha_ptree)):
+        c_a_full_prob += c_alpha_ptree[i][1]
+
+    if c_a_full_prob == 0.0:
+        c_a_full_prob = 1.0
+
+    c_a_d_prob = 0.0
+    c_a_y_prob = 0.0
+    c_a_n_prob = 0.0
+    for i in range(len(c_alpha_ptree)):
+        if c_alpha_ptree[i][0][-1] == "full_end_dealer_win":
+            c_a_d_prob += (c_alpha_ptree[i][1] * (1 / c_a_full_prob))
+        elif c_alpha_ptree[i][0][-1] == "full_end_player_win":
+            c_a_y_prob += (c_alpha_ptree[i][1] * (1 / c_a_full_prob))
+        elif c_alpha_ptree[i][0][-1] == "full_end_no_win":
+            c_a_n_prob += (c_alpha_ptree[i][1] * (1 / c_a_full_prob))
+
+    c_b_full_prob = 0.0
+    for i in range(len(c_beta_ptree)):
+        c_b_full_prob += c_beta_ptree[i][1]
+
+    if c_b_full_prob == 0.0:
+        c_b_full_prob = 1.0
+
+    c_b_d_prob = 0.0
+    c_b_y_prob = 0.0
+    c_b_n_prob = 0.0
+    for i in range(len(c_beta_ptree)):
+        if c_beta_ptree[i][0][-1] == "full_end_dealer_win":
+            c_b_d_prob += (c_beta_ptree[i][1] * (1 / c_b_full_prob))
+        elif c_beta_ptree[i][0][-1] == "full_end_player_win":
+            c_b_y_prob += (c_beta_ptree[i][1] * (1 / c_b_full_prob))
+        elif c_beta_ptree[i][0][-1] == "full_end_no_win":
+            c_b_n_prob += (c_beta_ptree[i][1] * (1 / c_b_full_prob))
+
+    if c_a_y_prob + c_a_n_prob > c_b_y_prob + c_b_n_prob and not isclose(c_a_y_prob + c_a_n_prob,
+                                                                         c_b_y_prob + c_b_n_prob, rel_tol=1e-15,
+                                                                         abs_tol=0.0):
+        possibility_tree = c_starting_ptree + c_alpha_ptree
+    elif c_b_y_prob + c_b_n_prob > c_a_y_prob + c_a_n_prob and not isclose(c_a_y_prob + c_a_n_prob,
+                                                                           c_b_y_prob + c_b_n_prob, rel_tol=1e-15,
+                                                                           abs_tol=0.0):
+        possibility_tree = c_starting_ptree + c_beta_ptree
+    else:
+        c_alpha_rating = 0
+        for i in range(len(c_alpha_ptree)):
+            if (c_alpha_ptree[i][1] * (1 / c_a_full_prob)) != 0.0:
+                c_alpha_rating += (c_alpha_ptree[i][2] - c_alpha_ptree[i][3]) / (
+                        c_alpha_ptree[i][1] * (1 / c_a_full_prob))
+        c_beta_rating = 0
+        for i in range(len(c_beta_ptree)):
+            if (c_beta_ptree[i][1] * (1 / c_b_full_prob)) != 0.0:
+                c_beta_rating += (c_beta_ptree[i][2] - c_beta_ptree[i][3]) / (c_beta_ptree[i][1] * (1 / c_b_full_prob))
+        if c_alpha_rating > c_beta_rating and not isclose(c_alpha_rating, c_beta_rating, rel_tol=1e-12, abs_tol=0.0):
+            possibility_tree = c_starting_ptree + c_alpha_ptree
+        else:
+            possibility_tree = c_starting_ptree + c_beta_ptree
 
 
 if __name__ == "__main__":

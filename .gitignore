@@ -6,5 +6,5 @@ build/
 dist/
 run.spec
 
-# macos specific build script
+# macos specific build script (contains secrets)
 build.sh
