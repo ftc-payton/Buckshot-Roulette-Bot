@@ -32,7 +32,7 @@ Download from the latest stable release:
     <td><a href="https://github.com/ftc-payton/Buckshot-Roulette-Bot/releases/download/v1.2.0/Buckshot_Roulette_Bot_v1.2.0_arch_arm64">Download</a></td>
   </tr>
   <tr>
-    <td colspan="3" align="center"><a href="https://github.com/ftc-payton/Buckshot-Roulette-Bot/releases/download/v1.2.0/Buckshot_Roulette_Bot_v1.2.0rev2_script.py">Python Script (if your OS isn't listed)</a></td>
+    <td colspan="3" align="center"><a href="https://github.com/ftc-payton/Buckshot-Roulette-Bot/releases/download/v1.2.0/Buckshot_Roulette_Bot_v1.2.0_script.py">Python Script (if your OS isn't listed)</a></td>
   </tr>
 </table>
 <sup>*</sup>should work with any distros that are based on Debian or Arch respectively
